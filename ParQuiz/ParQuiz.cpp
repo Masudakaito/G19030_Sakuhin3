@@ -267,12 +267,10 @@ VOID MY_DELETE_IMAGE(VOID);		//画像をまとめて削除する関数
 BOOL MY_LOAD_MUSIC(VOID);		//音楽をまとめて読み込む関数
 VOID MY_DELETE_MUSIC(VOID);		//音楽をまとめて削除する関数
 
-BOOL MY_CHECK_MAP1_PLAYER_COLL_GOAL(RECT);	//マップとプレイヤーの当たり判定をする関数
-BOOL MY_CHECK_MAP1_PLAYER_COLL_FLOOR(RECT);	//マップとプレイヤーの当たり判定をする関数
-BOOL MY_CHECK_RECT_COLL_GOAL(RECT, RECT);	//領域の当たり判定をする関数
-BOOL MY_CHECK_RECT_COLL_UNDER(RECT, RECT);	//領域の当たり判定をする関数
+BOOL MY_CHECK_MAP1_PLAYER_COLL(RECT);	//マップとプレイヤーの当たり判定をする関数
+BOOL MY_CHECK_RECT_COLL(RECT, RECT);	//領域の当たり判定をする関数
 
-//########## プログラムで最初に実行される関数 ##########
+										//########## プログラムで最初に実行される関数 ##########
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 	SetOutApplicationLogValidFlag(FALSE);				//Log.txtを出力しない
@@ -614,10 +612,6 @@ VOID MY_START_PROC(VOID)
 		player.image.y = startPt.y - 40;
 		player.CenterY = startPt.y - 10;
 
-		//プレイヤーの当たる以前の位置を設定する
-		player.collBeforePt.x = player.CenterX;
-		player.collBeforePt.y = player.CenterY;
-
 		//ゲームのシーンをプレイ画面にする
 		GameScene = GAME_SCENE_PLAY;
 
@@ -659,6 +653,7 @@ VOID MY_PLAY(VOID)
 //プレイ画面の処理
 VOID MY_PLAY_PROC(VOID)
 {
+
 	//BGMが流れていないなら
 	if (CheckSoundMem(BGM_PLAY.handle) == 0)
 	{
@@ -687,8 +682,21 @@ VOID MY_PLAY_PROC(VOID)
 
 	}
 
+	if (MY_KEY_DOWN(KEY_INPUT_S) == TRUE)		//Sキーで下に移動
+	{
+		player.image.y += player.speed;
+		player.CenterY += player.speed;
+
+	}
+
+	//当たり判定
+	player.coll.left = player.CenterX - mapChip.width / 2 + 5;
+	player.coll.top = player.CenterY - mapChip.height / 2 + 5;
+	player.coll.right = player.CenterX + mapChip.width / 2 - 5;
+	player.coll.bottom = player.CenterY + mapChip.height / 2 - 5;
+
 	//プレイヤーとゴールがあたっていたら
-	if (MY_CHECK_MAP1_PLAYER_COLL_GOAL(player.coll) == TRUE)
+	if (MY_CHECK_MAP1_PLAYER_COLL(player.coll) == 1)
 	{
 		if (CheckSoundMem(BGM_PLAY.handle) != 0)
 		{
@@ -700,23 +708,17 @@ VOID MY_PLAY_PROC(VOID)
 	}
 
 	//プレイヤーとゴールがあたっていたら
-	if (MY_CHECK_MAP1_PLAYER_COLL_FLOOR(player.coll) == TRUE)
+	if (MY_CHECK_MAP1_PLAYER_COLL(player.coll) == 2)
 	{
-		player.image.y -= 0;
-		player.CenterY -= 0;
+		player.CenterX = player.collBeforePt.x;
+		player.CenterY = player.collBeforePt.y;
+		player.image.x = player.collBeforePt.x-30;
+		player.image.y = player.collBeforePt.y-30;
 
 	}
-	else if (MY_CHECK_MAP1_PLAYER_COLL_FLOOR(player.coll) == FALSE)
-	{
-		player.image.y += 10;
-		player.CenterY += 10;
-	}
-
-	//当たり判定
-	player.coll.left = player.CenterX - mapChip.width / 2 - 5;
-	player.coll.top = player.CenterY - mapChip.height / 2 - 5;
-	player.coll.right = player.CenterX + mapChip.width / 2 + 5;
-	player.coll.bottom = player.CenterY + mapChip.height / 2 + 5;
+	//プレイヤーの当たる以前の位置を設定する
+	player.collBeforePt.x = player.CenterX;
+	player.collBeforePt.y = player.CenterY;
 
 	return;
 }
@@ -1035,8 +1037,8 @@ VOID MY_DELETE_MUSIC(VOID)
 	return;
 }
 
-//マップとプレイヤーの当たり判定をする関数
-BOOL MY_CHECK_MAP1_PLAYER_COLL_GOAL(RECT player)
+//プレイヤーとゴールの当たり判定をする関数
+BOOL MY_CHECK_MAP1_PLAYER_COLL(RECT player)
 {
 	//マップの当たり判定を設定する
 	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
@@ -1044,35 +1046,14 @@ BOOL MY_CHECK_MAP1_PLAYER_COLL_GOAL(RECT player)
 		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
 		{
 			//プレイヤーとゴールが当たっているとき
-			if (MY_CHECK_RECT_COLL_GOAL(player, mapColl[tate][yoko]) == TRUE)
+			if (MY_CHECK_RECT_COLL(player, mapColl[tate][yoko]) == TRUE)
 			{
 				//ゴールのときは、当たっている
-				if (map[tate][yoko].kind == g) { return TRUE; }
+				if (map[tate][yoko].kind == g) { return 1; }
 
+				//ブロックのときは、当たっている
+				if (map[tate][yoko].kind == b) { return 2; }
 			}
-
-		}
-	}
-
-	return FALSE;
-}
-
-//マップとプレイヤーの当たり判定をする関数
-BOOL MY_CHECK_MAP1_PLAYER_COLL_FLOOR(RECT player)
-{
-	//マップの当たり判定を設定する
-	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
-	{
-		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
-		{
-			//プレイヤーとゴールが当たっているとき
-			if (MY_CHECK_RECT_COLL_UNDER(player, mapColl[tate][yoko]) == TRUE)
-			{
-				//ゴールのときは、当たっている
-				if (map[tate][yoko].kind == b) { return TRUE; }
-
-			}
-
 		}
 	}
 
@@ -1080,7 +1061,7 @@ BOOL MY_CHECK_MAP1_PLAYER_COLL_FLOOR(RECT player)
 }
 
 //領域の当たり判定をする関数
-BOOL MY_CHECK_RECT_COLL_GOAL(RECT a, RECT b)
+BOOL MY_CHECK_RECT_COLL(RECT a, RECT b)
 {
 	if (a.left < b.right &&
 		a.top < b.bottom &&
@@ -1093,15 +1074,3 @@ BOOL MY_CHECK_RECT_COLL_GOAL(RECT a, RECT b)
 
 	return FALSE;		//当たっていない
 }
-
-//領域の当たり判定をする関数
-BOOL MY_CHECK_RECT_COLL_UNDER(RECT a, RECT b)
-{
-	if (a.bottom > b.top)
-	{
-		return TRUE;	//当たっている
-	}
-
-	return FALSE;		//当たっていない
-}
-
