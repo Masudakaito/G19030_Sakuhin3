@@ -179,6 +179,8 @@ int StartTimeFps;				//測定開始時刻
 int CountFps;					//カウンタ
 float CalcFps;					//計算結果
 int SampleNumFps = GAME_FPS;	//平均を取るサンプル数
+int JumpPower = 0;				//ジャンプスピード初期化
+int Jumpflag = TRUE;			//ジャンプフラグ
 
 //キーボードの入力を取得
 char AllKeyState[KEY_CODE_KIND] = { '\0' };		//すべてのキーの状態が入る
@@ -273,6 +275,7 @@ BOOL MY_CHECK_RECT_COLL(RECT, RECT);	//領域の当たり判定をする関数
 										//########## プログラムで最初に実行される関数 ##########
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
+
 	SetOutApplicationLogValidFlag(FALSE);				//Log.txtを出力しない
 	ChangeWindowMode(TRUE);								//ウィンドウモードに設定
 	SetGraphMode(GAME_WIDTH, GAME_HEIGHT, GAME_COLOR);	//指定の数値でウィンドウを表示する
@@ -652,7 +655,7 @@ VOID MY_PLAY(VOID)
 
 //プレイ画面の処理
 VOID MY_PLAY_PROC(VOID)
-{
+{	
 
 	//BGMが流れていないなら
 	if (CheckSoundMem(BGM_PLAY.handle) == 0)
@@ -662,38 +665,45 @@ VOID MY_PLAY_PROC(VOID)
 		PlaySoundMem(BGM_PLAY.handle, DX_PLAYTYPE_LOOP);
 	}
 
-	if (MY_KEY_DOWN(KEY_INPUT_D) == TRUE)		//Dキーで右に移動
+	//ジャンプフラグがTRUEかつWキーを押しているかつプレイヤーとブロックがあたっていたらジャンプ
+	if (Jumpflag==TRUE&&CheckHitKey(KEY_INPUT_W) == TRUE)
 	{
-		player.image.x += player.speed;
-		player.CenterX += player.speed;
+		JumpPower = 18;
+		Jumpflag = FALSE;		//ジャンプフラグをFALSEにする
 	}
 
-	if (MY_KEY_DOWN(KEY_INPUT_A) == TRUE)		//Aキーで左に移動
-	{
-		player.image.x -= player.speed;
-		player.CenterX -= player.speed;
+	//Dキーで右へ進む
+	if (CheckHitKey(KEY_INPUT_D) == TRUE)
+		{
+			player.image.x += player.speed;
+			player.CenterX += player.speed;
+		}
 
+	//Aキーで左へ進む
+	if (CheckHitKey(KEY_INPUT_A) == TRUE)
+		{
+			player.image.x -= player.speed;
+			player.CenterX -= player.speed;
+		}
+
+	//Wキーを離すとジャンプフラグがTRUEとなりジャンプができるようになる
+	if (CheckHitKey(KEY_INPUT_W) == FALSE)
+	{
+		Jumpflag = TRUE;
 	}
 
-	if (MY_KEY_DOWN(KEY_INPUT_W) == TRUE)		//Wキーで上に移動
-	{
-		player.image.y -= player.speed;
-		player.CenterY -= player.speed;
+	// 落下処理
+	player.CenterY -= JumpPower;
+	player.image.y -= JumpPower;
 
-	}
-
-	if (MY_KEY_DOWN(KEY_INPUT_S) == TRUE)		//Sキーで下に移動
-	{
-		player.image.y += player.speed;
-		player.CenterY += player.speed;
-
-	}
+	// 落下加速度を加える
+	JumpPower -= 1;
 
 	//当たり判定
-	player.coll.left = player.CenterX - mapChip.width / 2 + 5;
-	player.coll.top = player.CenterY - mapChip.height / 2 + 5;
-	player.coll.right = player.CenterX + mapChip.width / 2 - 5;
-	player.coll.bottom = player.CenterY + mapChip.height / 2 - 5;
+	player.coll.left = player.CenterX - mapChip.width / 2 + 2;
+	player.coll.top = player.CenterY - mapChip.height / 2 + 2;
+	player.coll.right = player.CenterX + mapChip.width / 2 - 2;
+	player.coll.bottom = player.CenterY + mapChip.height / 2 - 2;
 
 	//プレイヤーとゴールがあたっていたら
 	if (MY_CHECK_MAP1_PLAYER_COLL(player.coll) == 1)
@@ -703,19 +713,23 @@ VOID MY_PLAY_PROC(VOID)
 			StopSoundMem(BGM_PLAY.handle);	//BGMを止める
 		}
 
+		// 画面を初期化する
+		ClearDrawScreen();
+
 		//ゲームのシーンをプレイ画面にする
 		GameScene = GAME_SCENE_END;
 	}
 
-	//プレイヤーとゴールがあたっていたら
+	//プレイヤーとブロックが当たっていたら直前の位置へ戻る
 	if (MY_CHECK_MAP1_PLAYER_COLL(player.coll) == 2)
 	{
 		player.CenterX = player.collBeforePt.x;
 		player.CenterY = player.collBeforePt.y;
-		player.image.x = player.collBeforePt.x-30;
-		player.image.y = player.collBeforePt.y-30;
-
+		player.image.x = player.collBeforePt.x - 30;
+		player.image.y = player.collBeforePt.y - 30;
+		JumpPower = 0;
 	}
+
 	//プレイヤーの当たる以前の位置を設定する
 	player.collBeforePt.x = player.CenterX;
 	player.collBeforePt.y = player.CenterY;
@@ -801,6 +815,9 @@ VOID MY_END_PROC(VOID)
 
 		GameScene = GAME_SCENE_START;
 	}
+
+	// 画面を初期化する
+	ClearDrawScreen();
 
 	return;
 }
@@ -1037,21 +1054,21 @@ VOID MY_DELETE_MUSIC(VOID)
 	return;
 }
 
-//プレイヤーとゴールの当たり判定をする関数
+//プレイヤーとマップチップの当たり判定をする関数
 BOOL MY_CHECK_MAP1_PLAYER_COLL(RECT player)
 {
-	//マップの当たり判定を設定する
+	//マップチップの当たり判定を設定する
 	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
 	{
 		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
 		{
-			//プレイヤーとゴールが当たっているとき
+			//プレイヤーとマップチップが当たっているとき
 			if (MY_CHECK_RECT_COLL(player, mapColl[tate][yoko]) == TRUE)
 			{
-				//ゴールのときは、当たっている
+				//ゴールのときは、１を返す
 				if (map[tate][yoko].kind == g) { return 1; }
 
-				//ブロックのときは、当たっている
+				//ブロックのときは、２を返す
 				if (map[tate][yoko].kind == b) { return 2; }
 			}
 		}
