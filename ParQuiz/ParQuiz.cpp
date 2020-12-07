@@ -47,7 +47,7 @@
 #define IMG_SOUGEN				TEXT(".\\IMAGE\\sougen.png")		//タイトル画面の背景
 #define IMG_SORA				TEXT(".\\IMAGE\\sora.png")			//プレイ画面の背景
 #define IMG_MARU				TEXT(".\\IMAGE\\player.png")		//プレイヤーの画像
-#define IMG_LOGO				TEXT(".\\IMAGE\\logo.png")			//ロゴの画像
+#define IMG_LOGO				TEXT(".\\IMAGE\\ParQuiz.png")			//ロゴの画像
 #define IMG_LOGO_END			TEXT(".\\IMAGE\\logo_end.png")		//エンドの画像
 #define IMG_SPACE				TEXT(".\\IMAGE\\pressofspace.png")		//PRESS OF SPACEKEYの画像
 #define IMG_ENTER				TEXT(".\\IMAGE\\pressofenter.png")		//PRESS OF ENTERの画像
@@ -181,6 +181,7 @@ float CalcFps;					//計算結果
 int SampleNumFps = GAME_FPS;	//平均を取るサンプル数
 int JumpPower = 0;				//ジャンプスピード初期化
 int Jumpflag = TRUE;			//ジャンプフラグ
+int WJumpflag = FALSE;			//２段ジャンプフラグ
 
 //キーボードの入力を取得
 char AllKeyState[KEY_CODE_KIND] = { '\0' };		//すべてのキーの状態が入る
@@ -666,27 +667,37 @@ VOID MY_PLAY_PROC(VOID)
 	}
 
 	//ジャンプフラグがTRUEかつWキーを押しているかつプレイヤーとブロックがあたっていたらジャンプ
-	if (Jumpflag==TRUE&&CheckHitKey(KEY_INPUT_W) == TRUE)
+	if (WJumpflag==FALSE && Jumpflag==TRUE && CheckHitKey(KEY_INPUT_W) == TRUE && MY_CHECK_MAP1_PLAYER_COLL(player.coll) == 2)
 	{
-		JumpPower = 18;
+		JumpPower = 15;			//２ブロック分のジャンプ
+		Jumpflag = FALSE;		//ジャンプフラグをFALSEにする
+		WJumpflag = TRUE;
+	}
+
+	//WジャンプフラグがTRUEかつWキーを押していたらジャンプ
+	if (Jumpflag == TRUE && WJumpflag == TRUE && CheckHitKey(KEY_INPUT_W) == TRUE)
+	{
+		JumpPower = 15;			//２ブロック分のジャンプ
+		WJumpflag = FALSE;		//ジャンプフラグをFALSEにする
 		Jumpflag = FALSE;		//ジャンプフラグをFALSEにする
 	}
 
+
 	//Dキーで右へ進む
 	if (CheckHitKey(KEY_INPUT_D) == TRUE)
-		{
-			player.image.x += player.speed;
-			player.CenterX += player.speed;
-		}
+	{
+		player.image.x += player.speed;
+		player.CenterX += player.speed;
+	}
 
 	//Aキーで左へ進む
 	if (CheckHitKey(KEY_INPUT_A) == TRUE)
-		{
-			player.image.x -= player.speed;
-			player.CenterX -= player.speed;
-		}
+	{
+		player.image.x -= player.speed;
+		player.CenterX -= player.speed;
+	}
 
-	//Wキーを離すとジャンプフラグがTRUEとなりジャンプができるようになる
+	//Wキーを離すとジャンプフラグがTRUEとなりジャンプができるようになる(地面についていないとジャンプができない)
 	if (CheckHitKey(KEY_INPUT_W) == FALSE)
 	{
 		Jumpflag = TRUE;
@@ -700,10 +711,10 @@ VOID MY_PLAY_PROC(VOID)
 	JumpPower -= 1;
 
 	//当たり判定
-	player.coll.left = player.CenterX - mapChip.width / 2 + 2;
-	player.coll.top = player.CenterY - mapChip.height / 2 + 2;
-	player.coll.right = player.CenterX + mapChip.width / 2 - 2;
-	player.coll.bottom = player.CenterY + mapChip.height / 2 - 2;
+	player.coll.left = player.CenterX - mapChip.width / 2 + 1;
+	player.coll.top = player.CenterY - mapChip.height / 2 + 1;
+	player.coll.right = player.CenterX + mapChip.width / 2 - 1;
+	player.coll.bottom = player.CenterY + mapChip.height / 2 - 1;
 
 	//プレイヤーとゴールがあたっていたら
 	if (MY_CHECK_MAP1_PLAYER_COLL(player.coll) == 1)
