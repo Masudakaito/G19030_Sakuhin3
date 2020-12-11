@@ -52,7 +52,7 @@
 #define IMG_SPACE				TEXT(".\\IMAGE\\pressofspace.png")		//PRESS OF SPACEKEYの画像
 #define IMG_ENTER				TEXT(".\\IMAGE\\pressofenter.png")		//PRESS OF ENTERの画像
 
-#define GAME_MAP_PATH			TEXT(".\\IMAGE\\mapchip2.png")		//マップの画像
+#define GAME_MAP_PATH			TEXT(".\\IMAGE\\mapchip3.png")		//マップの画像
 
 #define MAP_DIV_WIDTH		60	//画像を分割する幅サイズ
 #define MAP_DIV_HEIGHT		60	//画像を分割する高さサイズ
@@ -80,8 +80,9 @@ enum GAME_MAP_KIND
 	b = 1,	//ブロック
 	g = 2,	//ゴール
 	h = 3,	//スター
-	t = 4,	//通路
-	s = 7	//スタート
+	d = 4,	//トゲ(ダメージのd)
+	t = 5,	//通路
+	s = 6	//スタート
 };	//マップの種類
 
 enum GAME_SCENE {
@@ -182,7 +183,7 @@ int SampleNumFps = GAME_FPS;	//平均を取るサンプル数
 int JumpPower = 0;				//ジャンプスピード初期化
 int Jumpflag = TRUE;			//ジャンプフラグ
 int WJumpflag = FALSE;			//２段ジャンプフラグ
-int WKeyflag = FALSE;			//Wキーのフラグ
+int WKeyflag = FALSE;			//Wキーを離しているかどうかのフラグ
 
 //キーボードの入力を取得
 char AllKeyState[KEY_CODE_KIND] = { '\0' };		//すべてのキーの状態が入る
@@ -214,9 +215,9 @@ GAME_MAP_KIND mapData[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
 		b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,	// 0
 		b,h,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 1
 		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 2
-		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 3
+		b,t,t,t,t,t,t,t,t,d,t,t,t,t,t,b,	// 3
 		b,t,t,t,t,t,t,t,b,b,b,t,t,t,t,b,	// 4
-		b,t,t,t,h,t,t,t,t,t,t,t,b,t,t,b,	// 5
+		b,t,t,t,h,d,t,t,t,t,t,t,b,t,t,b,	// 5
 		b,t,t,t,b,b,b,t,t,t,t,t,b,t,t,b,	// 6
 		b,s,t,t,t,t,t,t,t,t,t,h,b,t,g,b,	// 7
 		b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,	// 8
@@ -236,6 +237,9 @@ iPOINT startPt{ -1,-1 };
 
 //マップの当たり判定
 RECT mapColl[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX];
+
+//マップの当たり判定
+RECT goalColl[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX];
 
 //########## プロトタイプ宣言 ##########
 VOID MY_FPS_UPDATE(VOID);			//FPS値を計測、更新する
@@ -667,6 +671,8 @@ VOID MY_PLAY_PROC(VOID)
 		PlaySoundMem(BGM_PLAY.handle, DX_PLAYTYPE_LOOP);
 	}
 
+	/*↓↓↓↓↓↓↓↓↓↓↓↓↓ジャンプの処理↓↓↓↓↓↓↓↓↓↓↓↓↓*/
+
 	//ジャンプフラグがTRUEかつWキーを押しているかつプレイヤーとブロックがあたっていたらジャンプ
 	if (Jumpflag==TRUE && CheckHitKey(KEY_INPUT_W) == TRUE && MY_CHECK_MAP1_PLAYER_COLL(player.coll) == 2)
 	{
@@ -689,7 +695,7 @@ VOID MY_PLAY_PROC(VOID)
 		WJumpflag = TRUE;		//二段ジャンプフラグをTRUEにし、二段ジャンプができるようになる
 	}
 
-	//Wキーを離すとジャンプフラグがTRUEとなりジャンプができるようになる(地面についていないとジャンプができない)
+	//Wキーを離すかつプレイヤーが地面につくと
 	if (CheckHitKey(KEY_INPUT_W) == FALSE && MY_CHECK_MAP1_PLAYER_COLL(player.coll) == 2)
 	{
 		Jumpflag = TRUE;		//ジャンプフラグをTRUEにし、ジャンプができるようになる
@@ -701,6 +707,8 @@ VOID MY_PLAY_PROC(VOID)
 
 	// 落下加速度を加える
 	JumpPower -= 1;
+
+	/*↑↑↑↑↑↑↑↑↑↑↑↑↑↑ジャンプの処理↑↑↑↑↑↑↑↑↑↑↑↑↑↑*/
 
 	//Dキーで右へ進む
 	if (CheckHitKey(KEY_INPUT_D) == TRUE)
@@ -745,8 +753,8 @@ VOID MY_PLAY_PROC(VOID)
 		player.image.x = player.collBeforePt.x - 30;
 		player.image.y = player.collBeforePt.y - 30;
 		JumpPower = 0;
-		WJumpflag = FALSE;
-		WKeyflag = FALSE;
+		WJumpflag = FALSE;	//二段ジャンプフラグをFALSE
+		WKeyflag = FALSE;	//WキーフラグをFALSE
 	}
 
 	//プレイヤーの当たる以前の位置を設定する
@@ -778,26 +786,33 @@ VOID MY_PLAY_DRAW(VOID)
 		}
 	}
 
-	////当たり判定の描画（デバッグ用）
-	//for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
-	//{
-	//	for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
-	//	{
-	//		//壁ならば
-	//		if (mapData[tate][yoko] == b)
-	//		{
-	//			DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(0, 0, 255), FALSE);
-	//		}
+	//当たり判定の描画（デバッグ用）
+	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
+	{
+		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
+		{
+			//壁ならば
+			if (mapData[tate][yoko] == b)
+			{
+				DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(0, 0, 255), FALSE);
+			}
 
-	//		//通路ならば
-	//		if (mapData[tate][yoko] == t)
-	//		{
-	//			DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 255, 0), FALSE);
-	//		}
-	//	}
-	//}
-	////当たり判定の描画（デバッグ用）
-	//DrawBox(player.coll.left, player.coll.top, player.coll.right, player.coll.bottom, GetColor(255, 0, 0), FALSE);
+			//通路ならば
+			if (mapData[tate][yoko] == t)
+			{
+				DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 255, 0), FALSE);
+			}
+
+			//壁ならば
+			if (mapData[tate][yoko] == g)
+			{
+				DrawBox(goalColl[tate][yoko].left, goalColl[tate][yoko].top, goalColl[tate][yoko].right, goalColl[tate][yoko].bottom, GetColor(0, 255,0), FALSE);
+			}
+
+		}
+	}
+	//当たり判定の描画（デバッグ用）
+	DrawBox(player.coll.left, player.coll.top, player.coll.right, player.coll.bottom, GetColor(255, 0, 0), FALSE);
 
 	return;
 }
@@ -952,9 +967,9 @@ BOOL MY_LOAD_IMAGE(VOID)
 
 		//マップの画像を分割する
 	int mapRes = LoadDivGraph(
-		GAME_MAP_PATH,										//赤弾のパス
-		MAP_DIV_NUM, MAP_DIV_TATE, MAP_DIV_YOKO,			//赤弾を分割する数
-		MAP_DIV_WIDTH, MAP_DIV_HEIGHT,						//画像を分割するの幅と高さ
+		GAME_MAP_PATH,										//マップチップのパス
+		MAP_DIV_NUM, MAP_DIV_TATE, MAP_DIV_YOKO,			//マップチップを分割する数
+		MAP_DIV_WIDTH, MAP_DIV_HEIGHT,						//画像を分割する幅と高さ
 		&mapChip.handle[0]);								//分割した画像が入るハンドル
 
 	if (mapRes == -1)
@@ -997,6 +1012,19 @@ BOOL MY_LOAD_IMAGE(VOID)
 			mapColl[tate][yoko].top = (tate + 0) * mapChip.height + 1;
 			mapColl[tate][yoko].right = (yoko + 1) * mapChip.width - 1;
 			mapColl[tate][yoko].bottom = (tate + 1) * mapChip.height - 1;
+		}
+	}
+
+	//マップの当たり判定を設定する
+	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
+	{
+		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
+		{
+			//マップの当たり判定を設定
+			goalColl[tate][yoko].left = (yoko + 0) * mapChip.width + 10;
+			goalColl[tate][yoko].top = (tate + 0) * mapChip.height + 1;
+			goalColl[tate][yoko].right = (yoko + 1) * mapChip.width - 10;
+			goalColl[tate][yoko].bottom = (tate + 1) * mapChip.height - 1;
 		}
 	}
 
@@ -1082,11 +1110,15 @@ BOOL MY_CHECK_MAP1_PLAYER_COLL(RECT player)
 		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
 		{
 			//プレイヤーとマップチップが当たっているとき
-			if (MY_CHECK_RECT_COLL(player, mapColl[tate][yoko]) == TRUE)
+			if (MY_CHECK_RECT_COLL(player, goalColl[tate][yoko]) == TRUE)
 			{
 				//ゴールのときは、１を返す
 				if (map[tate][yoko].kind == g) { return 1; }
+			}
 
+			//プレイヤーとマップチップが当たっているとき
+			if (MY_CHECK_RECT_COLL(player, mapColl[tate][yoko]) == TRUE)
+			{
 				//ブロックのときは、２を返す
 				if (map[tate][yoko].kind == b) { return 2; }
 			}
