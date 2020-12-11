@@ -182,6 +182,7 @@ int SampleNumFps = GAME_FPS;	//平均を取るサンプル数
 int JumpPower = 0;				//ジャンプスピード初期化
 int Jumpflag = TRUE;			//ジャンプフラグ
 int WJumpflag = FALSE;			//２段ジャンプフラグ
+int WKeyflag = FALSE;			//Wキーのフラグ
 
 //キーボードの入力を取得
 char AllKeyState[KEY_CODE_KIND] = { '\0' };		//すべてのキーの状態が入る
@@ -667,21 +668,39 @@ VOID MY_PLAY_PROC(VOID)
 	}
 
 	//ジャンプフラグがTRUEかつWキーを押しているかつプレイヤーとブロックがあたっていたらジャンプ
-	if (WJumpflag==FALSE && Jumpflag==TRUE && CheckHitKey(KEY_INPUT_W) == TRUE && MY_CHECK_MAP1_PLAYER_COLL(player.coll) == 2)
+	if (Jumpflag==TRUE && CheckHitKey(KEY_INPUT_W) == TRUE && MY_CHECK_MAP1_PLAYER_COLL(player.coll) == 2)
 	{
 		JumpPower = 15;			//２ブロック分のジャンプ
 		Jumpflag = FALSE;		//ジャンプフラグをFALSEにする
-		WJumpflag = TRUE;
+		WKeyflag = TRUE;		//WキーフラグをTRUEにする
 	}
 
-	//WジャンプフラグがTRUEかつWキーを押していたらジャンプ
-	if (Jumpflag == TRUE && WJumpflag == TRUE && CheckHitKey(KEY_INPUT_W) == TRUE)
+	//二段ジャンプフラグがTRUEかつWキーを押しているかつプレイヤーとブロックがあたっていたらジャンプ
+	if (WJumpflag == TRUE && CheckHitKey(KEY_INPUT_W) == TRUE)
 	{
 		JumpPower = 15;			//２ブロック分のジャンプ
-		WJumpflag = FALSE;		//ジャンプフラグをFALSEにする
-		Jumpflag = FALSE;		//ジャンプフラグをFALSEにする
+		WJumpflag = FALSE;		//二段ジャンプフラグをFALSEにする
+		WKeyflag = FALSE;		//WキーフラグをTRUEにする
 	}
 
+	//WキーフラグがTRUEかつWキーを離すと
+	if (WKeyflag == TRUE && CheckHitKey(KEY_INPUT_W) == FALSE)
+	{
+		WJumpflag = TRUE;		//二段ジャンプフラグをTRUEにし、二段ジャンプができるようになる
+	}
+
+	//Wキーを離すとジャンプフラグがTRUEとなりジャンプができるようになる(地面についていないとジャンプができない)
+	if (CheckHitKey(KEY_INPUT_W) == FALSE && MY_CHECK_MAP1_PLAYER_COLL(player.coll) == 2)
+	{
+		Jumpflag = TRUE;		//ジャンプフラグをTRUEにし、ジャンプができるようになる
+	}
+
+	// 落下処理
+	player.CenterY -= JumpPower;
+	player.image.y -= JumpPower;
+
+	// 落下加速度を加える
+	JumpPower -= 1;
 
 	//Dキーで右へ進む
 	if (CheckHitKey(KEY_INPUT_D) == TRUE)
@@ -696,19 +715,6 @@ VOID MY_PLAY_PROC(VOID)
 		player.image.x -= player.speed;
 		player.CenterX -= player.speed;
 	}
-
-	//Wキーを離すとジャンプフラグがTRUEとなりジャンプができるようになる(地面についていないとジャンプができない)
-	if (CheckHitKey(KEY_INPUT_W) == FALSE)
-	{
-		Jumpflag = TRUE;
-	}
-
-	// 落下処理
-	player.CenterY -= JumpPower;
-	player.image.y -= JumpPower;
-
-	// 落下加速度を加える
-	JumpPower -= 1;
 
 	//当たり判定
 	player.coll.left = player.CenterX - mapChip.width / 2 + 1;
@@ -739,6 +745,8 @@ VOID MY_PLAY_PROC(VOID)
 		player.image.x = player.collBeforePt.x - 30;
 		player.image.y = player.collBeforePt.y - 30;
 		JumpPower = 0;
+		WJumpflag = FALSE;
+		WKeyflag = FALSE;
 	}
 
 	//プレイヤーの当たる以前の位置を設定する
@@ -770,26 +778,26 @@ VOID MY_PLAY_DRAW(VOID)
 		}
 	}
 
-	//当たり判定の描画（デバッグ用）
-	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
-	{
-		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
-		{
-			//壁ならば
-			if (mapData[tate][yoko] == b)
-			{
-				DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(0, 0, 255), FALSE);
-			}
+	////当たり判定の描画（デバッグ用）
+	//for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
+	//{
+	//	for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
+	//	{
+	//		//壁ならば
+	//		if (mapData[tate][yoko] == b)
+	//		{
+	//			DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(0, 0, 255), FALSE);
+	//		}
 
-			//通路ならば
-			if (mapData[tate][yoko] == t)
-			{
-				DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 255, 0), FALSE);
-			}
-		}
-	}
-	//当たり判定の描画（デバッグ用）
-	DrawBox(player.coll.left, player.coll.top, player.coll.right, player.coll.bottom, GetColor(255, 0, 0), FALSE);
+	//		//通路ならば
+	//		if (mapData[tate][yoko] == t)
+	//		{
+	//			DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 255, 0), FALSE);
+	//		}
+	//	}
+	//}
+	////当たり判定の描画（デバッグ用）
+	//DrawBox(player.coll.left, player.coll.top, player.coll.right, player.coll.bottom, GetColor(255, 0, 0), FALSE);
 
 	return;
 }
