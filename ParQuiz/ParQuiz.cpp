@@ -94,7 +94,7 @@ enum GAME_SCENE {
 enum CHARA_SPEED {
 	CHARA_SPEED_LOW = 1,
 	CHARA_SPEED_MIDI = 2,
-	CHARA_SPEED_HIGH = 10
+	CHARA_SPEED_HIGH = 7
 };	//キャラクターのスピード
 
 //int型のPOINT構造体
@@ -216,8 +216,8 @@ GAME_MAP_KIND mapData[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
 		b,h,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 1
 		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 2
 		b,t,t,t,t,t,t,t,t,d,t,t,t,t,t,b,	// 3
-		b,t,t,t,t,t,t,t,b,b,b,t,t,t,t,b,	// 4
-		b,t,t,t,h,d,t,t,t,t,t,t,b,t,t,b,	// 5
+		b,t,t,t,h,t,t,t,b,b,b,t,t,t,t,b,	// 4
+		b,t,t,t,t,d,t,t,t,t,t,t,b,t,t,b,	// 5
 		b,t,t,t,b,b,b,t,t,t,t,t,b,t,t,b,	// 6
 		b,s,t,t,t,t,t,t,t,t,t,h,b,t,g,b,	// 7
 		b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,	// 8
@@ -238,7 +238,7 @@ iPOINT startPt{ -1,-1 };
 //マップの当たり判定
 RECT mapColl[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX];
 
-//マップの当たり判定
+//ゴールの当たり判定
 RECT goalColl[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX];
 
 //########## プロトタイプ宣言 ##########
@@ -278,7 +278,7 @@ VOID MY_DELETE_MUSIC(VOID);		//音楽をまとめて削除する関数
 BOOL MY_CHECK_MAP1_PLAYER_COLL(RECT);	//マップとプレイヤーの当たり判定をする関数
 BOOL MY_CHECK_RECT_COLL(RECT, RECT);	//領域の当たり判定をする関数
 
-										//########## プログラムで最初に実行される関数 ##########
+//########## プログラムで最初に実行される関数 ##########
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 
@@ -508,39 +508,6 @@ BOOL MY_KEYDOWN_KEEP(int KEY_INPUT_, int DownTime)
 	}
 }
 
-//マウスの入力情報を更新する
-VOID MY_MOUSE_UPDATE(VOID)
-{
-	//マウスの以前の座標を取得
-	mouse.OldPoint = mouse.Point;
-
-	//マウスの以前のボタン入力を取得
-	for (int i = 0; i < MOUSE_BUTTON_CODE; i++) { mouse.OldButton[i] = mouse.Button[i]; }
-
-	//マウスの座標を取得
-	GetMousePoint(&mouse.Point.x, &mouse.Point.y);
-
-	//マウスの押しているボタンを取得
-	mouse.InputValue = GetMouseInput();
-
-	//左ボタンを押しているかチェック(TRUEは0以外なので、2も4もTRUE)
-	if ((mouse.InputValue & MOUSE_INPUT_LEFT) == MOUSE_INPUT_LEFT) { mouse.Button[MOUSE_INPUT_LEFT]++; }		//押している
-	if ((mouse.InputValue & MOUSE_INPUT_LEFT) != MOUSE_INPUT_LEFT) { mouse.Button[MOUSE_INPUT_LEFT] = 0; }		//押していない
-
-	//中ボタンを押しているかチェック(TRUEは0以外なので、2も4もTRUE)
-	if ((mouse.InputValue & MOUSE_INPUT_MIDDLE) == MOUSE_INPUT_MIDDLE) { mouse.Button[MOUSE_INPUT_MIDDLE]++; }	//押している
-	if ((mouse.InputValue & MOUSE_INPUT_MIDDLE) != MOUSE_INPUT_MIDDLE) { mouse.Button[MOUSE_INPUT_MIDDLE] = 0; }	//押していない
-
-	//右ボタンを押しているかチェック(TRUEは0以外なので、2も4もTRUE)
-	if ((mouse.InputValue & MOUSE_INPUT_RIGHT) == MOUSE_INPUT_RIGHT) { mouse.Button[MOUSE_INPUT_RIGHT]++; }		//押している
-	if ((mouse.InputValue & MOUSE_INPUT_RIGHT) != MOUSE_INPUT_RIGHT) { mouse.Button[MOUSE_INPUT_RIGHT] = 0; }	//押していない
-
-	//ホイールの回転量を取得
-	mouse.WheelValue = GetMouseWheelRotVol();
-
-	return;
-}
-
 
 //フォントをこのソフト用に、一時的にインストール
 BOOL MY_FONT_INSTALL_ONCE(VOID)
@@ -671,12 +638,12 @@ VOID MY_PLAY_PROC(VOID)
 		PlaySoundMem(BGM_PLAY.handle, DX_PLAYTYPE_LOOP);
 	}
 
-	/*↓↓↓↓↓↓↓↓↓↓↓↓↓ジャンプの処理↓↓↓↓↓↓↓↓↓↓↓↓↓*/
+	/*▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ジャンプの処理▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼*/
 
 	//ジャンプフラグがTRUEかつWキーを押しているかつプレイヤーとブロックがあたっていたらジャンプ
 	if (Jumpflag==TRUE && CheckHitKey(KEY_INPUT_W) == TRUE && MY_CHECK_MAP1_PLAYER_COLL(player.coll) == 2)
 	{
-		JumpPower = 15;			//２ブロック分のジャンプ
+		JumpPower = 11;			//２ブロック分のジャンプ
 		Jumpflag = FALSE;		//ジャンプフラグをFALSEにする
 		WKeyflag = TRUE;		//WキーフラグをTRUEにする
 	}
@@ -684,7 +651,7 @@ VOID MY_PLAY_PROC(VOID)
 	//二段ジャンプフラグがTRUEかつWキーを押しているかつプレイヤーとブロックがあたっていたらジャンプ
 	if (WJumpflag == TRUE && CheckHitKey(KEY_INPUT_W) == TRUE)
 	{
-		JumpPower = 15;			//２ブロック分のジャンプ
+		JumpPower = 11;			//２ブロック分のジャンプ
 		WJumpflag = FALSE;		//二段ジャンプフラグをFALSEにする
 		WKeyflag = FALSE;		//WキーフラグをTRUEにする
 	}
@@ -708,7 +675,7 @@ VOID MY_PLAY_PROC(VOID)
 	// 落下加速度を加える
 	JumpPower -= 1;
 
-	/*↑↑↑↑↑↑↑↑↑↑↑↑↑↑ジャンプの処理↑↑↑↑↑↑↑↑↑↑↑↑↑↑*/
+	/*▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ジャンプの処理▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲*/
 
 	//Dキーで右へ進む
 	if (CheckHitKey(KEY_INPUT_D) == TRUE)
@@ -757,6 +724,18 @@ VOID MY_PLAY_PROC(VOID)
 		WKeyflag = FALSE;	//WキーフラグをFALSE
 	}
 
+	//プレイヤーとスターがあたっていたら
+	if (MY_CHECK_MAP1_PLAYER_COLL(player.coll) == 3)
+	{
+		for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
+		{
+			for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
+			{
+				DeleteGraph(mapChip.handle[3]);		//マップ上のすべての星を消す
+			}
+		}
+	}
+
 	//プレイヤーの当たる以前の位置を設定する
 	player.collBeforePt.x = player.CenterX;
 	player.collBeforePt.y = player.CenterY;
@@ -803,7 +782,7 @@ VOID MY_PLAY_DRAW(VOID)
 				DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 255, 0), FALSE);
 			}
 
-			//壁ならば
+			//ゴールならば
 			if (mapData[tate][yoko] == g)
 			{
 				DrawBox(goalColl[tate][yoko].left, goalColl[tate][yoko].top, goalColl[tate][yoko].right, goalColl[tate][yoko].bottom, GetColor(0, 255,0), FALSE);
@@ -884,7 +863,7 @@ BOOL MY_LOAD_IMAGE(VOID)
 	ImageTitle.x = GAME_WIDTH / 2 - ImageTitle.width / 2;		//左右中央揃え
 	ImageTitle.y = GAME_HEIGHT / 2 - ImageTitle.height / 2;	//上下中央揃え
 
-		//背景画像
+	//背景画像
 	strcpy_s(ImagePlay.path, IMG_SORA);		//パスの設定
 	ImagePlay.handle = LoadGraph(ImagePlay.path);	//読み込み
 	if (ImagePlay.handle == -1)
@@ -910,7 +889,7 @@ BOOL MY_LOAD_IMAGE(VOID)
 	ImageTitleROGO.x = GAME_WIDTH / 2 - ImageTitleROGO.width / 2;		//左右中央揃え
 	ImageTitleROGO.y = GAME_HEIGHT / 2 - ImageTitleROGO.height / 2;	//上下中央揃え
 
-	//エンド画面(GAME CLEAR)
+	//エンド画面(GAME CLEAR)の画像
 	strcpy_s(ImageTitleEND.path, IMG_LOGO_END);						//パスの設定
 	ImageTitleEND.handle = LoadGraph(ImageTitleEND.path);				//読み込み
 	if (ImageTitleEND.handle == -1)
@@ -923,7 +902,7 @@ BOOL MY_LOAD_IMAGE(VOID)
 	ImageTitleEND.x = GAME_WIDTH / 2 - ImageTitleEND.width / 2;		//左右中央揃え
 	ImageTitleEND.y = GAME_HEIGHT / 2 - ImageTitleEND.height / 2;	//上下中央揃え
 
-	//PRESS OF SPACEKEY!!!
+	//PRESS OF SPACEKEY!!!の画像
 	strcpy_s(ImageSpace.path, IMG_SPACE);						//パスの設定
 	ImageSpace.handle = LoadGraph(ImageSpace.path);				//読み込み
 	if (ImageSpace.handle == -1)
@@ -936,7 +915,7 @@ BOOL MY_LOAD_IMAGE(VOID)
 	ImageSpace.x = GAME_WIDTH / 2 - ImageSpace.width / 2;		//左右中央揃え
 	ImageSpace.y = GAME_HEIGHT / 2 + ImageSpace.height + 30;	//上下中央揃え
 
-	//PRESS OF SPACEKEY!!!
+	//PRESS OF SPACEKEY!!!の画像
 	strcpy_s(ImageEnter.path, IMG_ENTER);						//パスの設定
 	ImageEnter.handle = LoadGraph(ImageEnter.path);				//読み込み
 	if (ImageEnter.handle == -1)
@@ -1015,18 +994,19 @@ BOOL MY_LOAD_IMAGE(VOID)
 		}
 	}
 
-	//マップの当たり判定を設定する
+	//ゴールの当たり判定を設定する
 	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
 	{
 		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
 		{
-			//マップの当たり判定を設定
+			//ゴールの当たり判定を設定
 			goalColl[tate][yoko].left = (yoko + 0) * mapChip.width + 10;
 			goalColl[tate][yoko].top = (tate + 0) * mapChip.height + 1;
 			goalColl[tate][yoko].right = (yoko + 1) * mapChip.width - 10;
 			goalColl[tate][yoko].bottom = (tate + 1) * mapChip.height - 1;
 		}
 	}
+
 
 	return TRUE;
 }
@@ -1109,7 +1089,7 @@ BOOL MY_CHECK_MAP1_PLAYER_COLL(RECT player)
 	{
 		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
 		{
-			//プレイヤーとマップチップが当たっているとき
+			//プレイヤーとゴールが当たっているとき
 			if (MY_CHECK_RECT_COLL(player, goalColl[tate][yoko]) == TRUE)
 			{
 				//ゴールのときは、１を返す
@@ -1121,6 +1101,10 @@ BOOL MY_CHECK_MAP1_PLAYER_COLL(RECT player)
 			{
 				//ブロックのときは、２を返す
 				if (map[tate][yoko].kind == b) { return 2; }
+
+				//スターのときは、３を返す
+				if (map[tate][yoko].kind == h) { return 3; }
+
 			}
 		}
 	}
