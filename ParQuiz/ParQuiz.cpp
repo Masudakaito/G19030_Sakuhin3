@@ -94,7 +94,8 @@ enum GAME_SCENE {
 enum CHARA_SPEED {
 	CHARA_SPEED_LOW = 1,
 	CHARA_SPEED_MIDI = 2,
-	CHARA_SPEED_HIGH = 7
+	CHARA_SPEED_HIGH = 7,
+
 };	//ƒLƒƒƒ‰ƒNƒ^[‚ÌƒXƒs[ƒh
 
 //intŒ^‚ÌPOINT\‘¢‘Ì
@@ -102,6 +103,7 @@ typedef struct STRUCT_I_POINT
 {
 	int x = -1;	//À•W‚ð‰Šú‰»
 	int y = -1;	//À•W‚ð‰Šú‰»
+
 }iPOINT;
 
 //ƒ}ƒEƒX\‘¢‘Ì
@@ -113,6 +115,7 @@ typedef struct STRUCT_MOUSE
 	iPOINT OldPoint;	//ƒ}ƒEƒX‚ÌÀ•W(’¼‘O)‚ª“ü‚é
 	int OldButton[MOUSE_BUTTON_CODE] = { 0 };	//ƒ}ƒEƒX‚Ìƒ{ƒ^ƒ““ü—Í(’¼‘O)‚ª“ü‚é
 	int Button[MOUSE_BUTTON_CODE] = { 0 };	//ƒ}ƒEƒX‚Ìƒ{ƒ^ƒ““ü—Í‚ª“ü‚é
+
 }MOUSE;
 
 //ƒtƒHƒ“ƒg\‘¢‘Ì
@@ -136,12 +139,14 @@ typedef struct STRUCT_IMAGE
 	int width;					//•
 	int height;					//‚‚³
 	BOOL IsDraw = FALSE;		//•`‰æ‚Å‚«‚é‚©
+
 }IMAGE;	//‰æ‘œ\‘¢‘Ì
 
 typedef struct STRUCT_MUSIC
 {
 	char path[PATH_MAX];		//ƒpƒX
 	int handle;					//ƒnƒ“ƒhƒ‹
+
 }MUSIC;	//‰¹Šy\‘¢‘Ì
 
 typedef struct STRUCT_CHARA
@@ -159,10 +164,11 @@ typedef struct STRUCT_CHARA
 typedef struct STRUCT_MAP_IMAGE
 {
 	char path[PATH_MAX];				//ƒpƒX
-	int handle[MAP_DIV_NUM];			//•ªŠ„‚µ‚½‚Ì’e‚Ì‰æ‘œƒnƒ“ƒhƒ‹‚ðŽæ“¾
+	int handle[MAP_DIV_NUM];			//•ªŠ„‚µ‚½ƒ}ƒbƒv‚Ì‰æ‘œƒnƒ“ƒhƒ‹
 	int kind[MAP_DIV_NUM];				//ƒ}ƒbƒv‚ÌŽí—Þ
 	int width;							//•
 	int height;							//‚‚³
+
 }MAPCHIP;	//MAP_IMAGE\‘¢‘Ì
 
 typedef struct STRUCT_MAP
@@ -200,15 +206,15 @@ IMAGE ImagePlay;		//ƒvƒŒƒC‰æ–Ê‚Ì”wŒi‰æ‘œ
 IMAGE ImageTitleROGO;	//ƒƒS‚Ì‰æ‘œ
 IMAGE ImageTitleEND;	//ƒNƒŠƒA‚Ì‰æ‘œ
 
-IMAGE ImageSpace;	//ƒXƒy[ƒXƒL[‚ð‰Ÿ‚µ‚Ä‚­‚¾‚³‚¢
-IMAGE ImageEnter;	//ƒGƒ“ƒ^[ƒL[‚ð‰Ÿ‚µ‚Ä‚­‚¾‚³‚¢
+IMAGE ImageSpace;		//ƒXƒy[ƒXƒL[‚ð‰Ÿ‚µ‚Ä‚­‚¾‚³‚¢
+IMAGE ImageEnter;		//ƒGƒ“ƒ^[ƒL[‚ð‰Ÿ‚µ‚Ä‚­‚¾‚³‚¢
 
 CHARA player;			//ƒQ[ƒ€‚ÌƒLƒƒƒ‰
 
 MUSIC BGM_START;		//ƒ^ƒCƒgƒ‹‰æ–ÊBGM
 MUSIC BGM_PLAY;			//ƒvƒŒƒC‰æ–ÊBGM
 MUSIC BGM_END;			//ƒGƒ“ƒh‰æ–ÊBGM
-MUSIC BGM_KETTEI;		//Œˆ’èBGM
+MUSIC BGM_KETTEI;		//Œˆ’èSE
 
 GAME_MAP_KIND mapData[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
 	//  0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5
@@ -256,26 +262,28 @@ VOID MY_FONT_UNINSTALL_ONCE(VOID);	//ƒtƒHƒ“ƒg‚ð‚±‚Ìƒ\ƒtƒg—p‚ÉAˆêŽž“I‚ÉƒAƒ“ƒCƒ“ƒ
 BOOL MY_FONT_CREATE(VOID);			//ƒtƒHƒ“ƒg‚ðì¬‚·‚é
 VOID MY_FONT_DELETE(VOID);			//ƒtƒHƒ“ƒg‚ðíœ‚·‚é
 
-VOID MY_START(VOID);		//ƒXƒ^[ƒg‰æ–Ê
-VOID MY_START_PROC(VOID);	//ƒXƒ^[ƒg‰æ–Ê‚Ìˆ—
-VOID MY_START_DRAW(VOID);	//ƒXƒ^[ƒg‰æ–Ê‚Ì•`‰æ
+VOID MY_START(VOID);				//ƒXƒ^[ƒg‰æ–Ê
+VOID MY_START_PROC(VOID);			//ƒXƒ^[ƒg‰æ–Ê‚Ìˆ—
+VOID MY_START_DRAW(VOID);			//ƒXƒ^[ƒg‰æ–Ê‚Ì•`‰æ
 
-VOID MY_PLAY_INIT(VOID);	//ƒvƒŒƒC‰æ–Ê‰Šú‰»
-VOID MY_PLAY(VOID);			//ƒvƒŒƒC‰æ–Ê
-VOID MY_PLAY_PROC(VOID);	//ƒvƒŒƒC‰æ–Ê‚Ìˆ—
-VOID MY_PLAY_DRAW(VOID);	//ƒvƒŒƒC‰æ–Ê‚Ì•`‰æ
+VOID MY_PLAY_INIT(VOID);			//ƒvƒŒƒC‰æ–Ê‰Šú‰»
+VOID MY_PLAY(VOID);					//ƒvƒŒƒC‰æ–Ê
+VOID MY_PLAY_PROC(VOID);			//ƒvƒŒƒC‰æ–Ê‚Ìˆ—
+VOID MY_PLAY_DRAW(VOID);			//ƒvƒŒƒC‰æ–Ê‚Ì•`‰æ
 
-VOID MY_END(VOID);			//ƒGƒ“ƒh‰æ–Ê
-VOID MY_END_PROC(VOID);		//ƒGƒ“ƒh‰æ–Ê‚Ìˆ—
-VOID MY_END_DRAW(VOID);		//ƒGƒ“ƒh‰æ–Ê‚Ì•`‰æ
+VOID MY_END(VOID);					//ƒGƒ“ƒh‰æ–Ê
+VOID MY_END_PROC(VOID);				//ƒGƒ“ƒh‰æ–Ê‚Ìˆ—
+VOID MY_END_DRAW(VOID);				//ƒGƒ“ƒh‰æ–Ê‚Ì•`‰æ
 
-BOOL MY_LOAD_IMAGE(VOID);		//‰æ‘œ‚ð‚Ü‚Æ‚ß‚Ä“Ç‚Ýž‚ÞŠÖ”
-VOID MY_DELETE_IMAGE(VOID);		//‰æ‘œ‚ð‚Ü‚Æ‚ß‚Äíœ‚·‚éŠÖ”
+BOOL MY_LOAD_IMAGE(VOID);			//‰æ‘œ‚ð‚Ü‚Æ‚ß‚Ä“Ç‚Ýž‚ÞŠÖ”
+VOID MY_DELETE_IMAGE(VOID);			//‰æ‘œ‚ð‚Ü‚Æ‚ß‚Äíœ‚·‚éŠÖ”
 
-BOOL MY_LOAD_MUSIC(VOID);		//‰¹Šy‚ð‚Ü‚Æ‚ß‚Ä“Ç‚Ýž‚ÞŠÖ”
-VOID MY_DELETE_MUSIC(VOID);		//‰¹Šy‚ð‚Ü‚Æ‚ß‚Äíœ‚·‚éŠÖ”
+BOOL MY_LOAD_MUSIC(VOID);			//‰¹Šy‚ð‚Ü‚Æ‚ß‚Ä“Ç‚Ýž‚ÞŠÖ”
+VOID MY_DELETE_MUSIC(VOID);			//‰¹Šy‚ð‚Ü‚Æ‚ß‚Äíœ‚·‚éŠÖ”
 
-BOOL MY_CHECK_MAP1_PLAYER_COLL(RECT);	//ƒ}ƒbƒv‚ÆƒvƒŒƒCƒ„[‚Ì“–‚½‚è”»’è‚ð‚·‚éŠÖ”
+BOOL MY_CHECK_GOAL_PLAYER_COLL(RECT);	//ƒS[ƒ‹‚ÆƒvƒŒƒCƒ„[‚Ì“–‚½‚è”»’è‚ð‚·‚éŠÖ”
+BOOL MY_CHECK_BLOCK_PLAYER_COLL(RECT);	//ƒuƒƒbƒN‚ÆƒvƒŒƒCƒ„[‚Ì“–‚½‚è”»’è‚ð‚·‚éŠÖ”
+BOOL MY_CHECK_STAR_PLAYER_COLL(RECT);	//ƒXƒ^[‚ÆƒvƒŒƒCƒ„[‚Ì“–‚½‚è”»’è‚ð‚·‚éŠÖ”
 BOOL MY_CHECK_RECT_COLL(RECT, RECT);	//—Ìˆæ‚Ì“–‚½‚è”»’è‚ð‚·‚éŠÖ”
 
 //########## ƒvƒƒOƒ‰ƒ€‚ÅÅ‰‚ÉŽÀs‚³‚ê‚éŠÖ” ##########
@@ -603,8 +611,10 @@ VOID MY_START_DRAW(VOID)
 	//ƒXƒ^[ƒg‰æ–Ê”wŒi‚ð•`‰æ‚·‚é
 	DrawGraph(ImageTitle.x, ImageTitle.y, ImageTitle.handle, TRUE);
 
-	DrawGraph(ImageTitleROGO.x, ImageTitleROGO.y, ImageTitleROGO.handle, TRUE);	//ƒ^ƒCƒgƒ‹”wŒi‚Ì•`‰æ
+	//ƒ^ƒCƒgƒ‹”wŒi‚ð•`‰æ‚·‚é
+	DrawGraph(ImageTitleROGO.x, ImageTitleROGO.y, ImageTitleROGO.handle, TRUE);
 
+	//PRESS OF SPACEKEY‚ð•`‰æ‚·‚é
 	DrawGraph(ImageSpace.x, ImageSpace.y, ImageSpace.handle, TRUE);	//PRESS OF SPACEKEY‚Ì•`‰æ
 
 	return;
@@ -613,6 +623,8 @@ VOID MY_START_DRAW(VOID)
 //ƒvƒŒƒC‰æ–Ê‰Šú‰»
 VOID MY_PLAY_INIT(VOID)
 {
+	// ‰æ–Ê‚ð‰Šú‰»‚·‚é
+	ClearDrawScreen();
 
 	return;
 }
@@ -636,19 +648,20 @@ VOID MY_PLAY_PROC(VOID)
 		//BGM‚Ì‰¹—Ê‚ð‰º‚°‚é
 		ChangeVolumeSoundMem(255 * 30 / 100, BGM_PLAY.handle);	//50%‚Ì‰¹—Ê‚É‚·‚é
 		PlaySoundMem(BGM_PLAY.handle, DX_PLAYTYPE_LOOP);
+
 	}
 
 	/*¥¥¥¥¥¥¥¥¥¥¥¥¥¥¥ƒWƒƒƒ“ƒv‚Ìˆ—¥¥¥¥¥¥¥¥¥¥¥¥¥¥¥*/
 
-	//ƒWƒƒƒ“ƒvƒtƒ‰ƒO‚ªTRUE‚©‚ÂWƒL[‚ð‰Ÿ‚µ‚Ä‚¢‚é‚©‚ÂƒvƒŒƒCƒ„[‚ÆƒuƒƒbƒN‚ª‚ ‚½‚Á‚Ä‚¢‚½‚çƒWƒƒƒ“ƒv
-	if (Jumpflag==TRUE && CheckHitKey(KEY_INPUT_W) == TRUE && MY_CHECK_MAP1_PLAYER_COLL(player.coll) == 2)
+	//ƒWƒƒƒ“ƒvƒtƒ‰ƒO‚ªTRUE‚ÅWƒL[‚ð‰Ÿ‚µ‚Ä‚¢‚ÄƒvƒŒƒCƒ„[‚ÆƒuƒƒbƒN‚ª‚ ‚½‚Á‚Ä‚¢‚½‚çƒWƒƒƒ“ƒv
+	if (Jumpflag==TRUE && CheckHitKey(KEY_INPUT_W) == TRUE && MY_CHECK_BLOCK_PLAYER_COLL(player.coll) == TRUE)
 	{
-		JumpPower = 11;			//‚QƒuƒƒbƒN•ª‚ÌƒWƒƒƒ“ƒv
+		JumpPower = 11;			//–ñ1ƒuƒƒbƒN•ª‚ÌƒWƒƒƒ“ƒv
 		Jumpflag = FALSE;		//ƒWƒƒƒ“ƒvƒtƒ‰ƒO‚ðFALSE‚É‚·‚é
 		WKeyflag = TRUE;		//WƒL[ƒtƒ‰ƒO‚ðTRUE‚É‚·‚é
 	}
 
-	//“ñ’iƒWƒƒƒ“ƒvƒtƒ‰ƒO‚ªTRUE‚©‚ÂWƒL[‚ð‰Ÿ‚µ‚Ä‚¢‚é‚©‚ÂƒvƒŒƒCƒ„[‚ÆƒuƒƒbƒN‚ª‚ ‚½‚Á‚Ä‚¢‚½‚çƒWƒƒƒ“ƒv
+	//“ñ’iƒWƒƒƒ“ƒvƒtƒ‰ƒO‚ªTRUE‚ÅWƒL[‚ð‰Ÿ‚µ‚Ä‚¢‚½‚ç‹ó’†ƒWƒƒƒ“ƒv
 	if (WJumpflag == TRUE && CheckHitKey(KEY_INPUT_W) == TRUE)
 	{
 		JumpPower = 11;			//‚QƒuƒƒbƒN•ª‚ÌƒWƒƒƒ“ƒv
@@ -656,16 +669,16 @@ VOID MY_PLAY_PROC(VOID)
 		WKeyflag = FALSE;		//WƒL[ƒtƒ‰ƒO‚ðTRUE‚É‚·‚é
 	}
 
+	//WƒL[‚ð—£‚µ‚ÄƒvƒŒƒCƒ„[‚ª’n–Ê‚É‚Â‚­‚Æ
+	if (CheckHitKey(KEY_INPUT_W) == FALSE && MY_CHECK_BLOCK_PLAYER_COLL(player.coll) == TRUE)
+	{
+		Jumpflag = TRUE;		//ƒWƒƒƒ“ƒvƒtƒ‰ƒO‚ðTRUE‚É‚µAƒWƒƒƒ“ƒv‚ª‚Å‚«‚é‚æ‚¤‚É‚È‚é
+	}
+
 	//WƒL[ƒtƒ‰ƒO‚ªTRUE‚©‚ÂWƒL[‚ð—£‚·‚Æ
 	if (WKeyflag == TRUE && CheckHitKey(KEY_INPUT_W) == FALSE)
 	{
 		WJumpflag = TRUE;		//“ñ’iƒWƒƒƒ“ƒvƒtƒ‰ƒO‚ðTRUE‚É‚µA“ñ’iƒWƒƒƒ“ƒv‚ª‚Å‚«‚é‚æ‚¤‚É‚È‚é
-	}
-
-	//WƒL[‚ð—£‚·‚©‚ÂƒvƒŒƒCƒ„[‚ª’n–Ê‚É‚Â‚­‚Æ
-	if (CheckHitKey(KEY_INPUT_W) == FALSE && MY_CHECK_MAP1_PLAYER_COLL(player.coll) == 2)
-	{
-		Jumpflag = TRUE;		//ƒWƒƒƒ“ƒvƒtƒ‰ƒO‚ðTRUE‚É‚µAƒWƒƒƒ“ƒv‚ª‚Å‚«‚é‚æ‚¤‚É‚È‚é
 	}
 
 	// —Ž‰ºˆ—
@@ -698,22 +711,19 @@ VOID MY_PLAY_PROC(VOID)
 	player.coll.bottom = player.CenterY + mapChip.height / 2 - 1;
 
 	//ƒvƒŒƒCƒ„[‚ÆƒS[ƒ‹‚ª‚ ‚½‚Á‚Ä‚¢‚½‚ç
-	if (MY_CHECK_MAP1_PLAYER_COLL(player.coll) == 1)
+	if (MY_CHECK_GOAL_PLAYER_COLL(player.coll) == TRUE)
 	{
 		if (CheckSoundMem(BGM_PLAY.handle) != 0)
 		{
 			StopSoundMem(BGM_PLAY.handle);	//BGM‚ðŽ~‚ß‚é
 		}
 
-		// ‰æ–Ê‚ð‰Šú‰»‚·‚é
-		ClearDrawScreen();
-
-		//ƒQ[ƒ€‚ÌƒV[ƒ“‚ðƒvƒŒƒC‰æ–Ê‚É‚·‚é
+		//ƒQ[ƒ€‚ÌƒV[ƒ“‚ðƒGƒ“ƒh‰æ–Ê‚É‚·‚é
 		GameScene = GAME_SCENE_END;
 	}
 
 	//ƒvƒŒƒCƒ„[‚ÆƒuƒƒbƒN‚ª“–‚½‚Á‚Ä‚¢‚½‚ç’¼‘O‚ÌˆÊ’u‚Ö–ß‚é
-	if (MY_CHECK_MAP1_PLAYER_COLL(player.coll) == 2)
+	if (MY_CHECK_BLOCK_PLAYER_COLL(player.coll) == TRUE)
 	{
 		player.CenterX = player.collBeforePt.x;
 		player.CenterY = player.collBeforePt.y;
@@ -724,14 +734,18 @@ VOID MY_PLAY_PROC(VOID)
 		WKeyflag = FALSE;	//WƒL[ƒtƒ‰ƒO‚ðFALSE
 	}
 
-	//ƒvƒŒƒCƒ„[‚ÆƒXƒ^[‚ª‚ ‚½‚Á‚Ä‚¢‚½‚ç
-	if (MY_CHECK_MAP1_PLAYER_COLL(player.coll) == 3)
+	//ƒvƒŒƒCƒ„[‚ÆƒXƒ^[‚ª‚ ‚½‚Á‚Ä‚¢‚½‚çƒ}ƒbƒvã‚Ì‚·‚×‚Ä‚ÌƒXƒ^[‚ðÁ‚·
+	if (MY_CHECK_STAR_PLAYER_COLL(player.coll) == TRUE)
 	{
 		for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
 		{
 			for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
 			{
-				DeleteGraph(mapChip.handle[3]);		//ƒ}ƒbƒvã‚Ì‚·‚×‚Ä‚Ì¯‚ðÁ‚·
+				//map[tate][yoko].kind = t;
+				//map[tate][yoko].x = 0;
+				//map[tate][yoko].y = 0;
+				//map[tate][yoko].width = 0;
+				//map[tate][yoko].height = 0;
 			}
 		}
 	}
@@ -739,6 +753,9 @@ VOID MY_PLAY_PROC(VOID)
 	//ƒvƒŒƒCƒ„[‚Ì“–‚½‚éˆÈ‘O‚ÌˆÊ’u‚ðÝ’è‚·‚é
 	player.collBeforePt.x = player.CenterX;
 	player.collBeforePt.y = player.CenterY;
+
+	// ‰æ–Ê‚ð‰Šú‰»‚·‚é
+	ClearDrawScreen();
 
 	return;
 }
@@ -749,6 +766,7 @@ VOID MY_PLAY_DRAW(VOID)
 
 	//ƒvƒŒƒC‰æ–Ê”wŒi‚ð•`‰æ‚·‚é
 	DrawGraph(ImagePlay.x, ImagePlay.y, ImagePlay.handle, TRUE);
+
 	//ƒvƒŒƒCƒ„[‚ð•`‰æ‚·‚é
 	DrawGraph(player.image.x, player.image.y, player.image.handle, TRUE);
 
@@ -788,10 +806,18 @@ VOID MY_PLAY_DRAW(VOID)
 				DrawBox(goalColl[tate][yoko].left, goalColl[tate][yoko].top, goalColl[tate][yoko].right, goalColl[tate][yoko].bottom, GetColor(0, 255,0), FALSE);
 			}
 
+			//ƒXƒ^[‚È‚ç‚Î
+			if (mapData[tate][yoko] == h)
+			{
+				DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 0, 255), FALSE);
+			}
+
 		}
 	}
-	//“–‚½‚è”»’è‚Ì•`‰æiƒfƒoƒbƒO—pj
+
+	//ƒvƒŒ[ƒ„[“–‚½‚è”»’è‚Ì•`‰æiƒfƒoƒbƒO—pj
 	DrawBox(player.coll.left, player.coll.top, player.coll.right, player.coll.bottom, GetColor(255, 0, 0), FALSE);
+
 
 	return;
 }
@@ -801,7 +827,6 @@ VOID MY_END(VOID)
 {
 	MY_END_PROC();	//ƒGƒ“ƒh‰æ–Ê‚Ìˆ—
 	MY_END_DRAW();	//ƒGƒ“ƒh‰æ–Ê‚Ì•`‰æ
-
 
 	return;
 }
@@ -817,7 +842,6 @@ VOID MY_END_PROC(VOID)
 		PlaySoundMem(BGM_END.handle, DX_PLAYTYPE_LOOP);
 	}
 
-
 	//ƒGƒ“ƒ^[ƒL[‚ð‰Ÿ‚µ‚½‚çAƒXƒ^[ƒgƒV[ƒ“‚ÖˆÚ“®‚·‚é
 	if (MY_KEY_DOWN(KEY_INPUT_RETURN) == TRUE)
 	{
@@ -826,6 +850,7 @@ VOID MY_END_PROC(VOID)
 			StopSoundMem(BGM_END.handle);	//BGM‚ðŽ~‚ß‚é
 		}
 
+		//ƒXƒ^[ƒg‰æ–Ê‚É‚·‚é
 		GameScene = GAME_SCENE_START;
 	}
 
@@ -1020,6 +1045,7 @@ VOID MY_DELETE_IMAGE(VOID)
 	DeleteGraph(ImageTitleEND.handle);
 	DeleteGraph(ImageSpace.handle);
 	DeleteGraph(ImageEnter.handle);
+
 	for (int i_num = 0; i_num < MAP_DIV_NUM; i_num++) { DeleteGraph(mapChip.handle[i_num]); }
 
 	return;
@@ -1049,7 +1075,7 @@ BOOL MY_LOAD_MUSIC(VOID)
 	}
 
 	//ƒGƒ“ƒh‰æ–ÊBGM‚Ì“Ç‚Ýž‚Ý
-	strcpy_s(BGM_END.path, MUSIC_END_PATH);		//ƒpƒX‚ÌÝ’è
+	strcpy_s(BGM_END.path, MUSIC_END_PATH);			//ƒpƒX‚ÌÝ’è
 	BGM_END.handle = LoadSoundMem(BGM_END.path);	//“Ç‚Ýž‚Ý
 	if (BGM_END.handle == -1)
 	{
@@ -1057,7 +1083,8 @@ BOOL MY_LOAD_MUSIC(VOID)
 		MessageBox(GetMainWindowHandle(), MUSIC_END_PATH, MUSIC_LOAD_ERR_TITLE, MB_OK);
 		return FALSE;
 	}
-	//ƒGƒ“ƒh‰æ–ÊBGM‚Ì“Ç‚Ýž‚Ý
+
+	//Œˆ’èSE‚Ì“Ç‚Ýž‚Ý
 	strcpy_s(BGM_KETTEI.path, MUSIC_KETTEI_PATH);		//ƒpƒX‚ÌÝ’è
 	BGM_KETTEI.handle = LoadSoundMem(BGM_KETTEI.path);	//“Ç‚Ýž‚Ý
 	if (BGM_KETTEI.handle == -1)
@@ -1081,8 +1108,8 @@ VOID MY_DELETE_MUSIC(VOID)
 	return;
 }
 
-//ƒvƒŒƒCƒ„[‚Æƒ}ƒbƒvƒ`ƒbƒv‚Ì“–‚½‚è”»’è‚ð‚·‚éŠÖ”
-BOOL MY_CHECK_MAP1_PLAYER_COLL(RECT player)
+//ƒvƒŒƒCƒ„[‚ÆƒS[ƒ‹‚Ì“–‚½‚è”»’è‚ð‚·‚éŠÖ”
+BOOL MY_CHECK_GOAL_PLAYER_COLL(RECT player)
 {
 	//ƒ}ƒbƒvƒ`ƒbƒv‚Ì“–‚½‚è”»’è‚ðÝ’è‚·‚é
 	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
@@ -1092,24 +1119,56 @@ BOOL MY_CHECK_MAP1_PLAYER_COLL(RECT player)
 			//ƒvƒŒƒCƒ„[‚ÆƒS[ƒ‹‚ª“–‚½‚Á‚Ä‚¢‚é‚Æ‚«
 			if (MY_CHECK_RECT_COLL(player, goalColl[tate][yoko]) == TRUE)
 			{
-				//ƒS[ƒ‹‚Ì‚Æ‚«‚ÍA‚P‚ð•Ô‚·
-				if (map[tate][yoko].kind == g) { return 1; }
+				//ƒS[ƒ‹‚Ì‚Æ‚«‚ÍATRUE‚ð•Ô‚·
+				if (map[tate][yoko].kind == g) { return TRUE; }
 			}
 
-			//ƒvƒŒƒCƒ„[‚Æƒ}ƒbƒvƒ`ƒbƒv‚ª“–‚½‚Á‚Ä‚¢‚é‚Æ‚«
+		}
+	}
+
+	return FALSE;
+}
+
+//ƒvƒŒƒCƒ„[‚ÆƒuƒƒbƒN‚Ì“–‚½‚è”»’è‚ð‚·‚éŠÖ”
+BOOL MY_CHECK_BLOCK_PLAYER_COLL(RECT player)
+{
+	//ƒ}ƒbƒvƒ`ƒbƒv‚Ì“–‚½‚è”»’è‚ðÝ’è‚·‚é
+	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
+	{
+		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
+		{
+			//ƒvƒŒƒCƒ„[‚ÆƒuƒƒbƒN‚ª“–‚½‚Á‚Ä‚¢‚é‚Æ‚«
 			if (MY_CHECK_RECT_COLL(player, mapColl[tate][yoko]) == TRUE)
 			{
-				//ƒuƒƒbƒN‚Ì‚Æ‚«‚ÍA‚Q‚ð•Ô‚·
-				if (map[tate][yoko].kind == b) { return 2; }
-
-				//ƒXƒ^[‚Ì‚Æ‚«‚ÍA‚R‚ð•Ô‚·
-				if (map[tate][yoko].kind == h) { return 3; }
-
+				//ƒuƒƒbƒN‚Ì‚Æ‚«‚ÍATRUE‚ð•Ô‚·
+				if (map[tate][yoko].kind == b) { return TRUE; }
 			}
 		}
 	}
 
 	return FALSE;
+
+}
+
+//ƒvƒŒƒCƒ„[‚ÆƒXƒ^[‚Ì“–‚½‚è”»’è‚ð‚·‚éŠÖ”
+BOOL MY_CHECK_STAR_PLAYER_COLL(RECT player)
+{
+	//ƒ}ƒbƒvƒ`ƒbƒv‚Ì“–‚½‚è”»’è‚ðÝ’è‚·‚é
+	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
+	{
+		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
+		{
+			//ƒvƒŒƒCƒ„[‚ÆƒXƒ^[‚ª“–‚½‚Á‚Ä‚¢‚é‚Æ‚«
+			if (MY_CHECK_RECT_COLL(player, mapColl[tate][yoko]) == TRUE)
+			{
+				//ƒXƒ^[‚Ì‚Æ‚«‚ÍATRUE‚ð•Ô‚·
+				if (map[tate][yoko].kind == h) { return TRUE; }
+			}
+		}
+	}
+
+	return FALSE;
+
 }
 
 //—Ìˆæ‚Ì“–‚½‚è”»’è‚ð‚·‚éŠÖ”
@@ -1120,6 +1179,7 @@ BOOL MY_CHECK_RECT_COLL(RECT a, RECT b)
 		a.right > b.left &&
 		a.bottom > b.top
 		)
+
 	{
 		return TRUE;	//“–‚½‚Á‚Ä‚¢‚é
 	}
