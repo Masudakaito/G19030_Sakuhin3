@@ -740,22 +740,15 @@ VOID MY_PLAY_PROC(VOID)
 		{
 			for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
 			{
-				//map[tate][yoko].kind == t;
-				//map[tate][yoko].x = 0;
-				//map[tate][yoko].y = 0;
-				//map[tate][yoko].width = 0;
-				//map[tate][yoko].height = 0;
-				enum GAME_MAP_KIND
+				//スターならば
+				if (mapData[tate][yoko] == h)
 				{
-					n = -1,	//(NONE)未定
-					b = 1,	//ブロック
-					g = 2,	//ゴール
-					h = 5,	//スター
-					d = 4,	//トゲ(ダメージのd)
-					t = 5,	//通路
-					s = 6	//スタート
-				};	//マップの種類
-
+					map[tate][yoko].kind = t;
+					map[tate][yoko].x = 0;
+					map[tate][yoko].y = 0;
+					map[tate][yoko].width = 0;
+					map[tate][yoko].height = 0;
+				}
 			}
 		}
 	}
