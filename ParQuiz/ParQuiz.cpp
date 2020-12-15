@@ -1,6 +1,5 @@
 //########## ヘッダーファイル読み込み ##########
 #include "DxLib.h"
-#include "resource.h"
 
 //########## マクロ定義 ##########
 #define GAME_WIDTH			960	//画面の横の大きさ
@@ -296,7 +295,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	SetWindowStyleMode(GAME_WINDOW_BAR);				//タイトルバーはデフォルトにする
 	SetMainWindowText(TEXT(GAME_WINDOW_NAME));			//ウィンドウのタイトルの文字
 	SetAlwaysRunFlag(TRUE);								//非アクティブでも実行する
-	SetWindowIconID(IDI_ICON1);							//アイコンファイルを読込
+	SetWindowIconID(444);								//アイコンファイルを読込
 	SetWindowUserCloseEnableFlag(FALSE);				//閉じるボタンで、勝手にウィンドウが閉じないようにする
 
 	if (DxLib_Init() == -1) { return -1; }	//ＤＸライブラリ初期化処理
@@ -741,11 +740,22 @@ VOID MY_PLAY_PROC(VOID)
 		{
 			for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
 			{
-				//map[tate][yoko].kind = t;
+				//map[tate][yoko].kind == t;
 				//map[tate][yoko].x = 0;
 				//map[tate][yoko].y = 0;
 				//map[tate][yoko].width = 0;
 				//map[tate][yoko].height = 0;
+				enum GAME_MAP_KIND
+				{
+					n = -1,	//(NONE)未定
+					b = 1,	//ブロック
+					g = 2,	//ゴール
+					h = 5,	//スター
+					d = 4,	//トゲ(ダメージのd)
+					t = 5,	//通路
+					s = 6	//スタート
+				};	//マップの種類
+
 			}
 		}
 	}
