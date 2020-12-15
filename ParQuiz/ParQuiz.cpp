@@ -658,7 +658,7 @@ VOID MY_PLAY_PROC(VOID)
 	//ジャンプフラグがTRUEでWキーを押していてプレイヤーとブロックがあたっていたらジャンプ
 	if (Jumpflag==TRUE && CheckHitKey(KEY_INPUT_W) == TRUE && MY_CHECK_BLOCK_PLAYER_COLL(player.coll) == TRUE)
 	{	
-		ChangeVolumeSoundMem(255 * 60 / 100, BGM_JUMP1.handle);	//60%の音量にする
+		ChangeVolumeSoundMem(255 * 60 / 100, BGM_JUMP1.handle);	//80%の音量にする
 		PlaySoundMem(BGM_JUMP1.handle, DX_PLAYTYPE_BACK);
 
 		JumpPower = 11;			//約1ブロック分のジャンプ
@@ -669,7 +669,7 @@ VOID MY_PLAY_PROC(VOID)
 	//二段ジャンプフラグがTRUEでWキーを押していたら空中ジャンプ
 	if (WJumpflag == TRUE && CheckHitKey(KEY_INPUT_W) == TRUE)
 	{
-		ChangeVolumeSoundMem(255 * 60 / 100, BGM_JUMP2.handle);	//60%の音量にする
+		ChangeVolumeSoundMem(255 * 60 / 100, BGM_JUMP2.handle);	//80%の音量にする
 		PlaySoundMem(BGM_JUMP2.handle, DX_PLAYTYPE_BACK);
 
 		JumpPower = 11;			//２ブロック分のジャンプ
