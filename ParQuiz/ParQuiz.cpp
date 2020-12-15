@@ -71,7 +71,8 @@
 #define MUSIC_PLAY_PATH			TEXT(".\\MUSIC\\2.Play.mp3")	//プレイ画面BGM
 #define MUSIC_END_PATH			TEXT(".\\MUSIC\\3.End.mp3")		//エンド画面BGM
 #define MUSIC_KETTEI_PATH		TEXT(".\\MUSIC\\Kettei.mp3")	//決定効果音
-#define MUSIC_JANP_PATH			TEXT(".\\MUSIC\\Janp.mp3")		//ジャンプ効果音
+#define MUSIC_JUMP1_PATH		TEXT(".\\MUSIC\\Jump1.mp3")		//ジャンプ効果音
+#define MUSIC_JUMP2_PATH		TEXT(".\\MUSIC\\Jump2.mp3")		//ジャンプニ段目効果音
 
 enum GAME_MAP_KIND
 {
@@ -214,6 +215,8 @@ MUSIC BGM_START;		//タイトル画面BGM
 MUSIC BGM_PLAY;			//プレイ画面BGM
 MUSIC BGM_END;			//エンド画面BGM
 MUSIC BGM_KETTEI;		//決定SE
+MUSIC BGM_JUMP1;		//ジャンプSE
+MUSIC BGM_JUMP2;		//ニ段ジャンプSE
 
 GAME_MAP_KIND mapData[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
 	//  0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5
@@ -585,7 +588,7 @@ VOID MY_START_PROC(VOID)
 			StopSoundMem(BGM_START.handle);	//BGMを止める
 		}
 
-		ChangeVolumeSoundMem(255 * 30 / 100, BGM_KETTEI.handle);	//50%の音量にする
+		ChangeVolumeSoundMem(255 * 30 / 100, BGM_KETTEI.handle);	//30%の音量にする
 		PlaySoundMem(BGM_KETTEI.handle, DX_PLAYTYPE_BACK);
 
 		MY_PLAY_INIT();	//ゲーム初期化
@@ -654,7 +657,10 @@ VOID MY_PLAY_PROC(VOID)
 
 	//ジャンプフラグがTRUEでWキーを押していてプレイヤーとブロックがあたっていたらジャンプ
 	if (Jumpflag==TRUE && CheckHitKey(KEY_INPUT_W) == TRUE && MY_CHECK_BLOCK_PLAYER_COLL(player.coll) == TRUE)
-	{
+	{	
+		ChangeVolumeSoundMem(255 * 60 / 100, BGM_JUMP1.handle);	//60%の音量にする
+		PlaySoundMem(BGM_JUMP1.handle, DX_PLAYTYPE_BACK);
+
 		JumpPower = 11;			//約1ブロック分のジャンプ
 		Jumpflag = FALSE;		//ジャンプフラグをFALSEにする
 		WKeyflag = TRUE;		//WキーフラグをTRUEにする
@@ -663,6 +669,9 @@ VOID MY_PLAY_PROC(VOID)
 	//二段ジャンプフラグがTRUEでWキーを押していたら空中ジャンプ
 	if (WJumpflag == TRUE && CheckHitKey(KEY_INPUT_W) == TRUE)
 	{
+		ChangeVolumeSoundMem(255 * 60 / 100, BGM_JUMP2.handle);	//60%の音量にする
+		PlaySoundMem(BGM_JUMP2.handle, DX_PLAYTYPE_BACK);
+
 		JumpPower = 11;			//２ブロック分のジャンプ
 		WJumpflag = FALSE;		//二段ジャンプフラグをFALSEにする
 		WKeyflag = FALSE;		//WキーフラグをTRUEにする
@@ -1097,6 +1106,26 @@ BOOL MY_LOAD_MUSIC(VOID)
 		return FALSE;
 	}
 
+	//ジャンプSEの読み込み
+	strcpy_s(BGM_JUMP1.path, MUSIC_JUMP1_PATH);		//パスの設定
+	BGM_JUMP1.handle = LoadSoundMem(BGM_JUMP1.path);	//読み込み
+	if (BGM_JUMP1.handle == -1)
+	{
+		//	エラーメッセージ表示
+		MessageBox(GetMainWindowHandle(), MUSIC_JUMP1_PATH, MUSIC_LOAD_ERR_TITLE, MB_OK);
+		return FALSE;
+	}
+
+	//二段ジャンプSEの読み込み
+	strcpy_s(BGM_JUMP2.path, MUSIC_JUMP2_PATH);		//パスの設定
+	BGM_JUMP2.handle = LoadSoundMem(BGM_JUMP2.path);	//読み込み
+	if (BGM_JUMP2.handle == -1)
+	{
+		//	エラーメッセージ表示
+		MessageBox(GetMainWindowHandle(), MUSIC_JUMP2_PATH, MUSIC_LOAD_ERR_TITLE, MB_OK);
+		return FALSE;
+	}
+
 	return TRUE;
 }
 
@@ -1107,6 +1136,8 @@ VOID MY_DELETE_MUSIC(VOID)
 	DeleteSoundMem(BGM_PLAY.handle);
 	DeleteSoundMem(BGM_END.handle);
 	DeleteSoundMem(BGM_KETTEI.handle);
+	DeleteSoundMem(BGM_JUMP1.handle);
+	DeleteSoundMem(BGM_JUMP2.handle);
 
 	return;
 }
