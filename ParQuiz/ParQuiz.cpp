@@ -43,15 +43,16 @@
 #define GAME_MAP_YOKO_MAX	16	//マップの横の数
 #define GAME_MAP_KIND_MAX	2	//マップの種類の数
 
-#define IMG_SOUGEN				TEXT(".\\IMAGE\\sougen.png")		//タイトル画面の背景
-#define IMG_SORA				TEXT(".\\IMAGE\\sora.png")			//プレイ画面の背景
-#define IMG_MARU				TEXT(".\\IMAGE\\player.png")		//プレイヤーの画像
+#define IMG_SOUGEN				TEXT(".\\IMAGE\\sougen.png")			//タイトル画面の背景
+#define IMG_SORA				TEXT(".\\IMAGE\\sora.png")				//プレイ画面の背景
+#define IMG_MARU				TEXT(".\\IMAGE\\player.png")			//プレイヤーの画像
 #define IMG_LOGO				TEXT(".\\IMAGE\\ParQuiz.png")			//ロゴの画像
-#define IMG_LOGO_END			TEXT(".\\IMAGE\\logo_end.png")		//エンドの画像
+#define IMG_LOGO_CLEAR			TEXT(".\\IMAGE\\logo_end.png")			//クリアの画像
+#define IMG_LOGO_OVER			TEXT(".\\IMAGE\\logo_end2.png")			//ゲームオーバーの画像
 #define IMG_SPACE				TEXT(".\\IMAGE\\pressofspace.png")		//PRESS OF SPACEKEYの画像
 #define IMG_ENTER				TEXT(".\\IMAGE\\pressofenter.png")		//PRESS OF ENTERの画像
 
-#define GAME_MAP_PATH			TEXT(".\\IMAGE\\mapchip3.png")		//マップの画像
+#define GAME_MAP_PATH			TEXT(".\\IMAGE\\mapchip4.png")		//マップの画像
 
 #define MAP_DIV_WIDTH		60	//画像を分割する幅サイズ
 #define MAP_DIV_HEIGHT		60	//画像を分割する高さサイズ
@@ -69,7 +70,8 @@
 
 #define MUSIC_START_PATH		TEXT(".\\MUSIC\\1.Start.mp3")	//タイトル画面BGM
 #define MUSIC_PLAY_PATH			TEXT(".\\MUSIC\\2.Play.mp3")	//プレイ画面BGM
-#define MUSIC_END_PATH			TEXT(".\\MUSIC\\3.End.mp3")		//エンド画面BGM
+#define MUSIC_CLEAR_PATH		TEXT(".\\MUSIC\\3.Clear.mp3")	//クリア画面BGM
+#define MUSIC_OVER_PATH			TEXT(".\\MUSIC\\4.Over.mp3")	//ゲームオーバー画面BGM
 #define MUSIC_KETTEI_PATH		TEXT(".\\MUSIC\\Kettei.mp3")	//決定効果音
 #define MUSIC_JUMP1_PATH		TEXT(".\\MUSIC\\Jump1.mp3")		//ジャンプ効果音
 #define MUSIC_JUMP2_PATH		TEXT(".\\MUSIC\\Jump2.mp3")		//ジャンプニ段目効果音
@@ -81,8 +83,9 @@ enum GAME_MAP_KIND
 	g = 2,	//ゴール
 	h = 3,	//スター
 	d = 4,	//トゲ(ダメージのd)
-	t = 5,	//通路
-	s = 6	//スタート
+	a = 5,	//トゲ2
+	t = 6,	//通路
+	s = 7	//スタート
 };	//マップの種類
 
 enum GAME_SCENE {
@@ -97,6 +100,11 @@ enum CHARA_SPEED {
 	CHARA_SPEED_HIGH = 7,
 
 };	//キャラクターのスピード
+
+enum GAME_END {
+	GAME_END_CLEAR,	//クリア
+	GAME_END_OVER	//ゲームオーバー
+};	//ゲームの終了状態
 
 //int型のPOINT構造体
 typedef struct STRUCT_I_POINT
@@ -201,10 +209,13 @@ MOUSE mouse;
 //ゲーム関連
 int GameScene;			//ゲームシーンを管理
 
+int GameEndKind;		//ゲームの終了状態
+
 IMAGE ImageTitle;		//タイトル画面の背景画像
 IMAGE ImagePlay;		//プレイ画面の背景画像
 IMAGE ImageTitleROGO;	//ロゴの画像
-IMAGE ImageTitleEND;	//クリアの画像
+IMAGE ImageTitleCLEAR;	//クリアの画像
+IMAGE ImageTitleOVER;	//ゲームオーバーの画像
 
 IMAGE ImageSpace;		//スペースキーを押してください
 IMAGE ImageEnter;		//エンターキーを押してください
@@ -213,7 +224,8 @@ CHARA player;			//ゲームのキャラ
 
 MUSIC BGM_START;		//タイトル画面BGM
 MUSIC BGM_PLAY;			//プレイ画面BGM
-MUSIC BGM_END;			//エンド画面BGM
+MUSIC BGM_CLEAR;		//クリア画面BGM
+MUSIC BGM_OVER;			//ゲームオーバー画面BGM
 MUSIC BGM_KETTEI;		//決定SE
 MUSIC BGM_JUMP1;		//ジャンプSE
 MUSIC BGM_JUMP2;		//ニ段ジャンプSE
@@ -223,9 +235,9 @@ GAME_MAP_KIND mapData[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
 		b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,	// 0
 		b,h,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 1
 		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 2
-		b,t,t,t,t,t,t,t,t,d,t,t,t,t,t,b,	// 3
+		b,t,t,t,t,t,t,t,t,a,t,t,t,t,t,b,	// 3
 		b,t,t,t,h,t,t,t,b,b,b,t,t,t,t,b,	// 4
-		b,t,t,t,t,d,t,t,t,t,t,t,b,t,t,b,	// 5
+		b,t,t,t,t,a,t,t,t,t,t,t,b,t,t,b,	// 5
 		b,t,t,t,b,b,b,t,t,t,t,t,b,t,t,b,	// 6
 		b,s,t,t,t,t,t,t,t,t,t,h,b,t,g,b,	// 7
 		b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,	// 8
@@ -286,6 +298,7 @@ VOID MY_DELETE_MUSIC(VOID);			//音楽をまとめて削除する関数
 BOOL MY_CHECK_GOAL_PLAYER_COLL(RECT);	//ゴールとプレイヤーの当たり判定をする関数
 BOOL MY_CHECK_BLOCK_PLAYER_COLL(RECT);	//ブロックとプレイヤーの当たり判定をする関数
 BOOL MY_CHECK_STAR_PLAYER_COLL(RECT);	//スターとプレイヤーの当たり判定をする関数
+BOOL MY_CHECK_TOGE_PLAYER_COLL(RECT);	//トゲとプレイヤーの当たり判定をする関数
 BOOL MY_CHECK_RECT_COLL(RECT, RECT);	//領域の当たり判定をする関数
 
 //########## プログラムで最初に実行される関数 ##########
@@ -598,6 +611,9 @@ VOID MY_START_PROC(VOID)
 		player.image.y = startPt.y - 40;
 		player.CenterY = startPt.y - 10;
 
+		//ゲームの終了状態を初期化する
+		GameEndKind = GAME_END_OVER;
+
 		//ゲームのシーンをプレイ画面にする
 		GameScene = GAME_SCENE_PLAY;
 
@@ -726,6 +742,8 @@ VOID MY_PLAY_PROC(VOID)
 			StopSoundMem(BGM_PLAY.handle);	//BGMを止める
 		}
 
+		GameEndKind = GAME_END_CLEAR;	//ミッションコンプリート！
+
 		//ゲームのシーンをエンド画面にする
 		GameScene = GAME_SCENE_END;
 	}
@@ -760,6 +778,21 @@ VOID MY_PLAY_PROC(VOID)
 				}
 			}
 		}
+	}
+
+	//プレイヤーとスターがあたっていたらマップ上のすべてのスターを消す
+	if (MY_CHECK_TOGE_PLAYER_COLL(player.coll) == TRUE)
+	{
+		if (CheckSoundMem(BGM_PLAY.handle) != 0)
+		{
+			StopSoundMem(BGM_PLAY.handle);	//BGMを止める
+		}
+
+		GameEndKind = GAME_END_OVER;	//ミッションコンプリート！
+
+		//ゲームのシーンをエンド画面にする
+		GameScene = GAME_SCENE_END;
+
 	}
 
 	//プレイヤーの当たる以前の位置を設定する
@@ -824,6 +857,12 @@ VOID MY_PLAY_DRAW(VOID)
 				DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 0, 255), FALSE);
 			}
 
+			//スターならば
+			if (mapData[tate][yoko] == a)
+			{
+				DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 150, 0), FALSE);
+			}
+
 		}
 	}
 
@@ -846,20 +885,46 @@ VOID MY_END(VOID)
 //エンド画面の処理
 VOID MY_END_PROC(VOID)
 {
-	//BGMが流れていないなら
-	if (CheckSoundMem(BGM_END.handle) == 0)
+	switch (GameEndKind)
 	{
-		//BGMの音量を下げる
-		ChangeVolumeSoundMem(255 * 50 / 100, BGM_END.handle);	//50%の音量にする
-		PlaySoundMem(BGM_END.handle, DX_PLAYTYPE_LOOP);
+	case GAME_END_CLEAR:
+		//コンプリートのとき
+
+		//BGMが流れていないなら
+		if (CheckSoundMem(BGM_CLEAR.handle) == 0)
+		{
+
+			//BGMの音量を下げる
+			ChangeVolumeSoundMem(255 * 50 / 100, BGM_CLEAR.handle);	//50%の音量にする
+			PlaySoundMem(BGM_CLEAR.handle, DX_PLAYTYPE_LOOP);
+		}
+		break;
+
+	case GAME_END_OVER:
+		//フォールトのとき
+
+		//BGMが流れていないなら
+		if (CheckSoundMem(BGM_OVER.handle) == 0)
+		{
+
+			//BGMの音量を下げる
+			ChangeVolumeSoundMem(255 * 50 / 100, BGM_OVER.handle);	//50%の音量にする
+			PlaySoundMem(BGM_OVER.handle, DX_PLAYTYPE_LOOP);
+		}
+		break;
 	}
 
 	//エンターキーを押したら、スタートシーンへ移動する
 	if (MY_KEY_DOWN(KEY_INPUT_RETURN) == TRUE)
 	{
-		if (CheckSoundMem(BGM_END.handle) != 0)
+		if (CheckSoundMem(BGM_CLEAR.handle) != 0)
 		{
-			StopSoundMem(BGM_END.handle);	//BGMを止める
+			StopSoundMem(BGM_CLEAR.handle);	//BGMを止める
+		}
+
+		if (CheckSoundMem(BGM_OVER.handle) != 0)
+		{
+			StopSoundMem(BGM_OVER.handle);	//BGMを止める
 		}
 
 		//スタート画面にする
@@ -877,8 +942,23 @@ VOID MY_END_DRAW(VOID)
 {
 	MY_PLAY_DRAW();	//プレイ画面を描画
 
-	//GAME CLEAR!!!を描画
-	DrawGraph(ImageTitleEND.x, ImageTitleEND.y, ImageTitleEND.handle, TRUE);
+	//ゲームの終了状態により、描画を変える
+	switch (GameEndKind)
+	{
+	case GAME_END_CLEAR:
+		//コンプリートのとき
+
+			//コンプリートの描画
+			DrawGraph(ImageTitleCLEAR.x, ImageTitleCLEAR.y, ImageTitleCLEAR.handle, TRUE);
+		break;
+
+	case GAME_END_OVER:
+		//フォールトのとき
+
+			//フォールトの描画
+			DrawGraph(ImageTitleOVER.x, ImageTitleOVER.y, ImageTitleOVER.handle, TRUE);
+		break;
+	}
 
 	DrawGraph(ImageEnter.x, ImageEnter.y, ImageEnter.handle, TRUE);	//PRESS OF ENTERKEYの描画
 	return;
@@ -927,17 +1007,30 @@ BOOL MY_LOAD_IMAGE(VOID)
 	ImageTitleROGO.y = GAME_HEIGHT / 2 - ImageTitleROGO.height / 2;	//上下中央揃え
 
 	//エンド画面(GAME CLEAR)の画像
-	strcpy_s(ImageTitleEND.path, IMG_LOGO_END);						//パスの設定
-	ImageTitleEND.handle = LoadGraph(ImageTitleEND.path);				//読み込み
-	if (ImageTitleEND.handle == -1)
+	strcpy_s(ImageTitleCLEAR.path, IMG_LOGO_CLEAR);						//パスの設定
+	ImageTitleCLEAR.handle = LoadGraph(ImageTitleCLEAR.path);			//読み込み
+	if (ImageTitleCLEAR.handle == -1)
 	{
 		//エラーメッセージ表示
-		MessageBox(GetMainWindowHandle(), IMG_LOGO_END, IMAGE_LOAD_ERR_TITLE, MB_OK);
+		MessageBox(GetMainWindowHandle(), IMG_LOGO_CLEAR, IMAGE_LOAD_ERR_TITLE, MB_OK);
 		return FALSE;
 	}
-	GetGraphSize(ImageTitleEND.handle, &ImageTitleEND.width, &ImageTitleEND.height);	//画像の幅と高さを取得
-	ImageTitleEND.x = GAME_WIDTH / 2 - ImageTitleEND.width / 2;		//左右中央揃え
-	ImageTitleEND.y = GAME_HEIGHT / 2 - ImageTitleEND.height / 2;	//上下中央揃え
+	GetGraphSize(ImageTitleCLEAR.handle, &ImageTitleCLEAR.width, &ImageTitleCLEAR.height);	//画像の幅と高さを取得
+	ImageTitleCLEAR.x = GAME_WIDTH / 2 - ImageTitleCLEAR.width / 2;		//左右中央揃え
+	ImageTitleCLEAR.y = GAME_HEIGHT / 2 - ImageTitleCLEAR.height / 2;	//上下中央揃え
+
+	//エンド画面(GAME OVER)の画像
+	strcpy_s(ImageTitleOVER.path, IMG_LOGO_OVER);						//パスの設定
+	ImageTitleOVER.handle = LoadGraph(ImageTitleOVER.path);				//読み込み
+	if (ImageTitleOVER.handle == -1)
+	{
+		//エラーメッセージ表示
+		MessageBox(GetMainWindowHandle(), IMG_LOGO_OVER, IMAGE_LOAD_ERR_TITLE, MB_OK);
+		return FALSE;
+	}
+	GetGraphSize(ImageTitleOVER.handle, &ImageTitleOVER.width, &ImageTitleOVER.height);	//画像の幅と高さを取得
+	ImageTitleOVER.x = GAME_WIDTH / 2 - ImageTitleOVER.width / 2;		//左右中央揃え
+	ImageTitleOVER.y = GAME_HEIGHT / 2 - ImageTitleOVER.height / 2;	//上下中央揃え
 
 	//PRESS OF SPACEKEY!!!の画像
 	strcpy_s(ImageSpace.path, IMG_SPACE);						//パスの設定
@@ -1054,7 +1147,8 @@ VOID MY_DELETE_IMAGE(VOID)
 	DeleteGraph(ImageTitle.handle);
 	DeleteGraph(ImagePlay.handle);
 	DeleteGraph(ImageTitleROGO.handle);
-	DeleteGraph(ImageTitleEND.handle);
+	DeleteGraph(ImageTitleCLEAR.handle);
+	DeleteGraph(ImageTitleOVER.handle);
 	DeleteGraph(ImageSpace.handle);
 	DeleteGraph(ImageEnter.handle);
 
@@ -1086,13 +1180,23 @@ BOOL MY_LOAD_MUSIC(VOID)
 		return FALSE;
 	}
 
-	//エンド画面BGMの読み込み
-	strcpy_s(BGM_END.path, MUSIC_END_PATH);			//パスの設定
-	BGM_END.handle = LoadSoundMem(BGM_END.path);	//読み込み
-	if (BGM_END.handle == -1)
+	//クリア画面BGMの読み込み
+	strcpy_s(BGM_CLEAR.path, MUSIC_CLEAR_PATH);			//パスの設定
+	BGM_CLEAR.handle = LoadSoundMem(BGM_CLEAR.path);	//読み込み
+	if (BGM_CLEAR.handle == -1)
 	{
 		//	エラーメッセージ表示
-		MessageBox(GetMainWindowHandle(), MUSIC_END_PATH, MUSIC_LOAD_ERR_TITLE, MB_OK);
+		MessageBox(GetMainWindowHandle(), MUSIC_CLEAR_PATH, MUSIC_LOAD_ERR_TITLE, MB_OK);
+		return FALSE;
+	}
+
+	//ゲームオーバー画面BGMの読み込み
+	strcpy_s(BGM_OVER.path, MUSIC_OVER_PATH);			//パスの設定
+	BGM_OVER.handle = LoadSoundMem(BGM_OVER.path);	//読み込み
+	if (BGM_OVER.handle == -1)
+	{
+		//	エラーメッセージ表示
+		MessageBox(GetMainWindowHandle(), MUSIC_OVER_PATH, MUSIC_LOAD_ERR_TITLE, MB_OK);
 		return FALSE;
 	}
 
@@ -1134,7 +1238,8 @@ VOID MY_DELETE_MUSIC(VOID)
 {
 	DeleteSoundMem(BGM_START.handle);
 	DeleteSoundMem(BGM_PLAY.handle);
-	DeleteSoundMem(BGM_END.handle);
+	DeleteSoundMem(BGM_CLEAR.handle);
+	DeleteSoundMem(BGM_OVER.handle);
 	DeleteSoundMem(BGM_KETTEI.handle);
 	DeleteSoundMem(BGM_JUMP1.handle);
 	DeleteSoundMem(BGM_JUMP2.handle);
@@ -1197,6 +1302,27 @@ BOOL MY_CHECK_STAR_PLAYER_COLL(RECT player)
 			{
 				//スターのときは、TRUEを返す
 				if (map[tate][yoko].kind == h) { return TRUE; }
+			}
+		}
+	}
+
+	return FALSE;
+
+}
+
+//プレイヤーとトゲの当たり判定をする関数
+BOOL MY_CHECK_TOGE_PLAYER_COLL(RECT player)
+{
+	//マップチップの当たり判定を設定する
+	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
+	{
+		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
+		{
+			//プレイヤーとトゲが当たっているとき
+			if (MY_CHECK_RECT_COLL(player, mapColl[tate][yoko]) == TRUE)
+			{
+				//トゲのときは、TRUEを返す
+				if (map[tate][yoko].kind == a) { return TRUE; }
 			}
 		}
 	}
