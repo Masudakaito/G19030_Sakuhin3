@@ -598,9 +598,11 @@ VOID MY_START_PROC(VOID)
 		PlaySoundMem(BGM_START.handle, DX_PLAYTYPE_LOOP);
 	}
 
-	//エンターキーを押したら、プレイシーンへ移動する
+	//スペースキーを押したら、プレイシーンへ移動する
 	if (MY_KEY_DOWN(KEY_INPUT_SPACE) == TRUE)
 	{
+		MY_PLAY_INIT();	//ゲーム初期化
+
 		if (CheckSoundMem(BGM_START.handle) != 0)
 		{
 			StopSoundMem(BGM_START.handle);	//BGMを止める
@@ -609,20 +611,12 @@ VOID MY_START_PROC(VOID)
 		ChangeVolumeSoundMem(255 * 30 / 100, BGM_KETTEI.handle);	//30%の音量にする
 		PlaySoundMem(BGM_KETTEI.handle, DX_PLAYTYPE_BACK);
 
-		MY_PLAY_INIT();	//ゲーム初期化
-
-		player.image.x = startPt.x - 30;
-		player.CenterX = startPt.x;
-		player.image.y = startPt.y - 40;
-		player.CenterY = startPt.y - 10;
-
 		//ゲームの終了状態を初期化する
 		GameEndKind = GAME_END_OVER;
 
 		//ゲームのシーンをプレイ画面にする
 		GameScene = GAME_SCENE_PLAY;
 
-		return;
 	}
 
 	return;
@@ -646,8 +640,26 @@ VOID MY_START_DRAW(VOID)
 //プレイ画面初期化
 VOID MY_PLAY_INIT(VOID)
 {
-	// 画面を初期化する
-	ClearDrawScreen();
+
+	//プレイヤーをスタート位置に描画
+	player.image.x = startPt.x - 30;
+	player.CenterX = startPt.x;
+	player.image.y = startPt.y - 40;
+	player.CenterY = startPt.y - 10;
+
+	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
+	{
+		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
+		{
+
+			if (map[tate][yoko].kind == m)
+			{
+				map[tate][yoko].kind = h2;
+			}
+		}
+	}
+
+	Kaitou = 0;
 
 	return;
 }
@@ -673,6 +685,10 @@ VOID MY_PLAY_PROC(VOID)
 		PlaySoundMem(BGM_PLAY.handle, DX_PLAYTYPE_LOOP);
 
 	}
+
+	//プレイヤーの当たる以前の位置を設定する
+	player.collBeforePt.x = player.CenterX;
+	player.collBeforePt.y = player.CenterY;
 
 	/*▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ジャンプの処理▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼*/
 
@@ -751,7 +767,7 @@ VOID MY_PLAY_PROC(VOID)
 		WKeyflag = FALSE;	//WキーフラグをFALSE
 	}
 
-	//プレイヤーとスターがあたっていたらマップ上のすべてのスターを消す
+	//プレイヤーとスター1があたっていたらマップ上のすべてのスターを消す
 	if (MY_CHECK_STAR1_PLAYER_COLL(player.coll) == TRUE)
 	{
 		for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
@@ -760,29 +776,16 @@ VOID MY_PLAY_PROC(VOID)
 			{
 				Kaitou = 1;
 
-				//スター1を消す
-				if (mapData[tate][yoko] == h1)
+				//スターを消す
+				if (mapData[tate][yoko] == h1 || mapData[tate][yoko] == h2 || mapData[tate][yoko] == h3)
 				{
-					map[tate][yoko].kind = t;
+					map[tate][yoko].kind = m;
 				}
-
-				//スター1を消す
-				if (mapData[tate][yoko] == h2)
-				{
-					map[tate][yoko].kind = t;
-				}
-
-				//スター1を消す
-				if (mapData[tate][yoko] == h3)
-				{
-					map[tate][yoko].kind = t;
-				}
-
 			}
 		}
 	}
 
-	//プレイヤーとスターがあたっていたらマップ上のすべてのスターを消す
+	//プレイヤーとスター2があたっていたらマップ上のすべてのスターを消す
 	if (MY_CHECK_STAR2_PLAYER_COLL(player.coll) == TRUE)
 	{
 		for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
@@ -791,24 +794,29 @@ VOID MY_PLAY_PROC(VOID)
 			{
 				Kaitou = 2;
 
-				//スター1を消す
-				if (mapData[tate][yoko] == h1)
+				//スターを消す
+				if (mapData[tate][yoko] == h1 || mapData[tate][yoko] == h2 || mapData[tate][yoko] == h3)
 				{
-					map[tate][yoko].kind = t;
+					map[tate][yoko].kind = m;
 				}
+			}
+		}
+	}
 
-				//スター1を消す
-				if (mapData[tate][yoko] == h2)
+	//プレイヤーとスター3があたっていたらマップ上のすべてのスターを消す
+	if (MY_CHECK_STAR3_PLAYER_COLL(player.coll) == TRUE)
+	{
+		for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
+		{
+			for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
+			{
+				Kaitou = 3;
+
+				//スターを消す
+				if (mapData[tate][yoko] == h1 || mapData[tate][yoko] == h2 || mapData[tate][yoko] == h3)
 				{
-					map[tate][yoko].kind = t;
+					map[tate][yoko].kind = m;
 				}
-
-				//スター1を消す
-				if (mapData[tate][yoko] == h3)
-				{
-					map[tate][yoko].kind = t;
-				}
-
 			}
 		}
 	}
@@ -831,6 +839,7 @@ VOID MY_PLAY_PROC(VOID)
 	//プレイヤーとゴールがあたっていたら
 	if (MY_CHECK_GOAL_PLAYER_COLL(player.coll) == TRUE)
 	{
+
 		if (CheckSoundMem(BGM_PLAY.handle) != 0)
 		{
 			StopSoundMem(BGM_PLAY.handle);	//BGMを止める
@@ -845,18 +854,14 @@ VOID MY_PLAY_PROC(VOID)
 		{
 			GameEndKind = GAME_END_OVER;
 		}
+
 		//ゲームのシーンをエンド画面にする
 		GameScene = GAME_SCENE_END;
+
 	}
 
-	//プレイヤーの当たる以前の位置を設定する
-	player.collBeforePt.x = player.CenterX;
-	player.collBeforePt.y = player.CenterY;
-
-	// 画面を初期化する
-	ClearDrawScreen();
-
 	return;
+
 }
 
 //プレイ画面の描画
@@ -869,11 +874,11 @@ VOID MY_PLAY_DRAW(VOID)
 	//プレイヤーを描画する
 	DrawGraph(player.image.x, player.image.y, player.image.handle, TRUE);
 
+	//マップチップを描画する
 	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
 	{
 		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
 		{
-			//マップを描画
 			DrawGraph(
 				map[tate][yoko].x,
 				map[tate][yoko].y,
@@ -906,19 +911,7 @@ VOID MY_PLAY_DRAW(VOID)
 			}
 
 			//スターならば
-			if (mapData[tate][yoko] == h1)
-			{
-				DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 0, 255), FALSE);
-			}
-
-			//スターならば
-			if (mapData[tate][yoko] == h2)
-			{
-				DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 0, 255), FALSE);
-			}
-
-			//スターならば
-			if (mapData[tate][yoko] == h3)
+			if (mapData[tate][yoko] == h1 || mapData[tate][yoko] == h2 || mapData[tate][yoko] == h3)
 			{
 				DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 0, 255), FALSE);
 			}
@@ -934,7 +927,6 @@ VOID MY_PLAY_DRAW(VOID)
 
 	//プレーヤー当たり判定の描画（デバッグ用）
 	DrawBox(player.coll.left, player.coll.top, player.coll.right, player.coll.bottom, GetColor(255, 0, 0), FALSE);
-
 
 	return;
 }
@@ -995,10 +987,8 @@ VOID MY_END_PROC(VOID)
 
 		//スタート画面にする
 		GameScene = GAME_SCENE_START;
-	}
 
-	// 画面を初期化する
-	ClearDrawScreen();
+	}
 
 	return;
 }
