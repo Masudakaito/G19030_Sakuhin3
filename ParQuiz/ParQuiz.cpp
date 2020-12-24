@@ -21,6 +21,8 @@
 #define PATH_MAX			255	//255文字まで
 #define NAME_MAX			255	//255文字まで
 
+#define TOGE_MOVE           1	//トゲが横に1マスずつ動く
+
 //フォント
 #define FONT_TANU_PATH			TEXT(".\\FONT\\TanukiMagic.ttf")	//フォントの場所
 #define FONT_TANU_NAME			TEXT("たぬき油性マジック")			//フォントの名前
@@ -52,7 +54,7 @@
 #define IMG_SPACE				TEXT(".\\IMAGE\\pressofspace.png")		//PRESS OF SPACEKEYの画像
 #define IMG_ENTER				TEXT(".\\IMAGE\\pressofenter.png")		//PRESS OF ENTERの画像
 
-#define GAME_MAP_PATH			TEXT(".\\IMAGE\\mapchip1ver4.png")		//マップの画像
+#define GAME_MAP_PATH			TEXT(".\\IMAGE\\mapchip1ver5.png")		//マップの画像
 
 #define MAP_DIV_WIDTH		60	//画像を分割する幅サイズ
 #define MAP_DIV_HEIGHT		60	//画像を分割する高さサイズ
@@ -78,16 +80,20 @@
 
 enum GAME_MAP_KIND
 {
-	m = -1,	//未定
+	m1 = -1,	//未定
+	m2 = -2,	//未定
+	m3 = -3,	//未定
 	b = 1,	//ブロック
 	g = 2,	//ゴール
-	n = 3,	//トゲ(ニードル)
-	d = 4,	//トゲ2(デンジャー)
+	d = 3,	//トゲ2(デンジャー)
+	n = 4,	//トゲ(ニードル)
 	h1= 5,	//星1
 	h2= 6,	//星2
 	h3= 7,	//星3
-	t = 8,	//通路
-	s = 9	//スタート
+	m = 8,	//トゲ(ムーブ)
+	a = 9,  //動くブロック
+	t = 10,	//通路
+	s = 11	//スタート
 };	//マップの種類
 
 enum GAME_SCENE {
@@ -196,11 +202,6 @@ int StartTimeFps;				//測定開始時刻
 int CountFps;					//カウンタ
 float CalcFps;					//計算結果
 int SampleNumFps = GAME_FPS;	//平均を取るサンプル数
-int JumpPower = 0;				//ジャンプスピード初期化
-int Jumpflag = TRUE;			//ジャンプフラグ
-int WJumpflag = FALSE;			//２段ジャンプフラグ
-int WKeyflag = FALSE;			//Wキーを離しているかどうかのフラグ
-int Kaitou = 0;
 
 //キーボードの入力を取得
 char AllKeyState[KEY_CODE_KIND] = { '\0' };		//すべてのキーの状態が入る
@@ -213,6 +214,14 @@ MOUSE mouse;
 int GameScene;			//ゲームシーンを管理
 
 int GameEndKind;		//ゲームの終了状態
+
+int JumpPower = 0;				//ジャンプスピード初期化
+int Jumpflag = TRUE;			//ジャンプフラグ
+int WJumpflag = FALSE;			//２段ジャンプフラグ
+int WKeyflag = FALSE;			//Wキーを離しているかどうかのフラグ
+int Answer = 0;					//取ったスターを入れる変数
+int Togeflag = TRUE;			//動くトゲの切り返しのフラグ	
+int TogeMove = 0;				//トゲが動いた距離を測る変数
 
 IMAGE ImageTitle;		//タイトル画面の背景画像
 IMAGE ImagePlay;		//プレイ画面の背景画像
@@ -236,13 +245,13 @@ MUSIC BGM_JUMP2;		//ニ段ジャンプSE
 GAME_MAP_KIND mapData[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
 	//  0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5
 		b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,	// 0
-		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 1
-		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 2
-		b,t,t,t,t,t,t,t,t,n,t,t,t,t,t,b,	// 3
-		b,t,t,t,t,t,t,t,b,b,b,t,t,t,t,b,	// 4
-		b,t,t,t,t,n,t,t,t,t,t,t,b,t,t,b,	// 5
-		b,t,t,t,b,b,b,t,t,t,t,t,b,t,t,b,	// 6
-		b,s,t,t,h1,t,t,t,h2,t,t,h3,b,t,g,b,	// 7
+		b,t,t,t,t,t,t,t,t,t,t,t,m,t,t,b,	// 1
+		b,t,g,n,t,t,t,t,h1,t,t,t,h2,n,t,b,	// 2
+		b,t,t,b,b,t,t,n,b,n,t,t,t,n,t,b,	// 3
+		b,t,t,t,t,t,t,t,t,t,t,t,t,n,t,b,	// 4
+		b,b,t,t,t,t,m,t,t,t,t,t,b,t,t,b,	// 5
+		b,t,t,t,t,t,t,n,t,t,t,t,b,t,t,b,	// 6
+		b,t,s,t,t,t,t,n,h3,t,t,t,b,t,g,b,	// 7
 		b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,	// 8
 };	//ゲームのマップ
 
@@ -299,11 +308,9 @@ BOOL MY_LOAD_MUSIC(VOID);			//音楽をまとめて読み込む関数
 VOID MY_DELETE_MUSIC(VOID);			//音楽をまとめて削除する関数
 
 BOOL MY_CHECK_GOAL_PLAYER_COLL(RECT);	//ゴールとプレイヤーの当たり判定をする関数
-BOOL MY_CHECK_BLOCK_PLAYER_COLL(RECT);	//ブロックとプレイヤーの当たり判定をする関数
-BOOL MY_CHECK_STAR1_PLAYER_COLL(RECT);	//スター1とプレイヤーの当たり判定をする関数
-BOOL MY_CHECK_STAR2_PLAYER_COLL(RECT);	//スター2とプレイヤーの当たり判定をする関数
-BOOL MY_CHECK_STAR3_PLAYER_COLL(RECT);	//スター3とプレイヤーの当たり判定をする関数
-BOOL MY_CHECK_TOGE_PLAYER_COLL(RECT);	//トゲとプレイヤーの当たり判定をする関数
+int MY_CHECK_BLOCK_PLAYER_COLL(RECT);	//ブロックとプレイヤーの当たり判定をする関数
+int MY_CHECK_STAR_PLAYER_COLL(RECT);	//スターとプレイヤーの当たり判定をする関数
+int MY_CHECK_TOGE_PLAYER_COLL(RECT);	//トゲとプレイヤーの当たり判定をする関数
 BOOL MY_CHECK_RECT_COLL(RECT, RECT);	//領域の当たり判定をする関数
 
 //########## プログラムで最初に実行される関数 ##########
@@ -513,7 +520,7 @@ BOOL MY_KEY_UP(int KEY_INPUT_)
 	}
 	else
 	{
-		return FALSE;	//キーを押し上げていない
+		return FALSE;	//キーを押し上げていないGAME_FPS
 	}
 }
 
@@ -651,15 +658,23 @@ VOID MY_PLAY_INIT(VOID)
 	{
 		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
 		{
-
-			if (map[tate][yoko].kind == m)
+			if (map[tate][yoko].kind == m1)
+			{
+				map[tate][yoko].kind = h1;
+			}
+			if (map[tate][yoko].kind == m2)
 			{
 				map[tate][yoko].kind = h2;
+			}
+
+			if (map[tate][yoko].kind == m3)
+			{
+				map[tate][yoko].kind = h3;
 			}
 		}
 	}
 
-	Kaitou = 0;
+	Answer = 0;
 
 	return;
 }
@@ -675,7 +690,7 @@ VOID MY_PLAY(VOID)
 
 //プレイ画面の処理
 VOID MY_PLAY_PROC(VOID)
-{	
+{
 
 	//BGMが流れていないなら
 	if (CheckSoundMem(BGM_PLAY.handle) == 0)
@@ -693,12 +708,12 @@ VOID MY_PLAY_PROC(VOID)
 	/*▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ジャンプの処理▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼*/
 
 	//ジャンプフラグがTRUEでWキーを押していてプレイヤーとブロックがあたっていたらジャンプ
-	if (Jumpflag==TRUE && CheckHitKey(KEY_INPUT_W) == TRUE && MY_CHECK_BLOCK_PLAYER_COLL(player.coll) == TRUE)
-	{	
+	if (Jumpflag == TRUE && CheckHitKey(KEY_INPUT_W) == TRUE && MY_CHECK_BLOCK_PLAYER_COLL(player.coll) == 1)
+	{
 		ChangeVolumeSoundMem(255 * 60 / 100, BGM_JUMP1.handle);	//80%の音量にする
 		PlaySoundMem(BGM_JUMP1.handle, DX_PLAYTYPE_BACK);
 
-		JumpPower = 11;			//約1ブロック分のジャンプ
+		JumpPower = 13;			//約1ブロック分のジャンプ
 		Jumpflag = FALSE;		//ジャンプフラグをFALSEにする
 		WKeyflag = TRUE;		//WキーフラグをTRUEにする
 	}
@@ -709,13 +724,47 @@ VOID MY_PLAY_PROC(VOID)
 		ChangeVolumeSoundMem(255 * 60 / 100, BGM_JUMP2.handle);	//80%の音量にする
 		PlaySoundMem(BGM_JUMP2.handle, DX_PLAYTYPE_BACK);
 
-		JumpPower = 11;			//２ブロック分のジャンプ
+		JumpPower = 13;			//２ブロック分のジャンプ
 		WJumpflag = FALSE;		//二段ジャンプフラグをFALSEにする
 		WKeyflag = FALSE;		//WキーフラグをTRUEにする
 	}
 
 	//Wキーを離してプレイヤーが地面につくと
-	if (CheckHitKey(KEY_INPUT_W) == FALSE && MY_CHECK_BLOCK_PLAYER_COLL(player.coll) == TRUE)
+	if (CheckHitKey(KEY_INPUT_W) == FALSE && MY_CHECK_BLOCK_PLAYER_COLL(player.coll) == 1)
+	{
+		Jumpflag = TRUE;		//ジャンプフラグをTRUEにし、ジャンプができるようになる
+	}
+
+	//WキーフラグがTRUEかつWキーを離すと
+	if (WKeyflag == TRUE && CheckHitKey(KEY_INPUT_W) == FALSE)
+	{
+		WJumpflag = TRUE;		//二段ジャンプフラグをTRUEにし、二段ジャンプができるようになる
+	}
+
+	//ジャンプフラグがTRUEでWキーを押していてプレイヤーとブロックがあたっていたらジャンプ
+	if (Jumpflag == TRUE && CheckHitKey(KEY_INPUT_W) == TRUE && MY_CHECK_BLOCK_PLAYER_COLL(player.coll) == 2)
+	{
+		ChangeVolumeSoundMem(255 * 60 / 100, BGM_JUMP1.handle);	//80%の音量にする
+		PlaySoundMem(BGM_JUMP1.handle, DX_PLAYTYPE_BACK);
+
+		JumpPower = 13;			//約1ブロック分のジャンプ
+		Jumpflag = FALSE;		//ジャンプフラグをFALSEにする
+		WKeyflag = TRUE;		//WキーフラグをTRUEにする
+	}
+
+	//二段ジャンプフラグがTRUEでWキーを押していたら空中ジャンプ
+	if (WJumpflag == TRUE && CheckHitKey(KEY_INPUT_W) == TRUE)
+	{
+		ChangeVolumeSoundMem(255 * 60 / 100, BGM_JUMP2.handle);	//80%の音量にする
+		PlaySoundMem(BGM_JUMP2.handle, DX_PLAYTYPE_BACK);
+
+		JumpPower = 13;			//２ブロック分のジャンプ
+		WJumpflag = FALSE;		//二段ジャンプフラグをFALSEにする
+		WKeyflag = FALSE;		//WキーフラグをTRUEにする
+	}
+
+	//Wキーを離してプレイヤーが地面につくと
+	if (CheckHitKey(KEY_INPUT_W) == FALSE && MY_CHECK_BLOCK_PLAYER_COLL(player.coll) == 2)
 	{
 		Jumpflag = TRUE;		//ジャンプフラグをTRUEにし、ジャンプができるようになる
 	}
@@ -732,6 +781,7 @@ VOID MY_PLAY_PROC(VOID)
 
 	// 落下加速度を加える
 	JumpPower -= 1;
+
 
 	/*▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ジャンプの処理▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲*/
 
@@ -756,7 +806,7 @@ VOID MY_PLAY_PROC(VOID)
 	player.coll.bottom = player.CenterY + mapChip.height / 2 - 1;
 
 	//プレイヤーとブロックが当たっていたら直前の位置へ戻る
-	if (MY_CHECK_BLOCK_PLAYER_COLL(player.coll) == TRUE)
+	if (MY_CHECK_BLOCK_PLAYER_COLL(player.coll) == 1)
 	{
 		player.CenterX = player.collBeforePt.x;
 		player.CenterY = player.collBeforePt.y;
@@ -767,62 +817,118 @@ VOID MY_PLAY_PROC(VOID)
 		WKeyflag = FALSE;	//WキーフラグをFALSE
 	}
 
-	//プレイヤーとスター1があたっていたらマップ上のすべてのスターを消す
-	if (MY_CHECK_STAR1_PLAYER_COLL(player.coll) == TRUE)
+	//プレイヤーと動くブロックが当たっていたら直前の位置へ戻る
+	if (MY_CHECK_BLOCK_PLAYER_COLL(player.coll) == 2)
+	{
+		player.CenterX = player.collBeforePt.x;
+		player.CenterY = player.collBeforePt.y;
+		player.image.x = player.collBeforePt.x - 30;
+		player.image.y = player.collBeforePt.y - 30;
+		JumpPower = 0;
+		WJumpflag = FALSE;	//二段ジャンプフラグをFALSE
+		WKeyflag = FALSE;	//WキーフラグをFALSE
+	}
+
+	//プレイヤーとスターがあたっていたらマップ上のすべてのスターを消す
+	if (MY_CHECK_STAR_PLAYER_COLL(player.coll) == 1 ||
+		MY_CHECK_STAR_PLAYER_COLL(player.coll) == 2 ||
+		MY_CHECK_STAR_PLAYER_COLL(player.coll) == 3)
 	{
 		for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
 		{
 			for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
 			{
-				Kaitou = 1;
-
-				//スターを消す
-				if (mapData[tate][yoko] == h1 || mapData[tate][yoko] == h2 || mapData[tate][yoko] == h3)
+				//スター1に当たっていたらAnswerに1を入れる
+				if (MY_CHECK_STAR_PLAYER_COLL(player.coll) == 1)
 				{
-					map[tate][yoko].kind = m;
+					Answer = 1;
 				}
+
+				//スター2に当たっていたらAnswerに2を入れる
+				if (MY_CHECK_STAR_PLAYER_COLL(player.coll) == 2)
+				{
+					Answer = 2;
+				}
+
+				//スター3に当たっていたらAnswerに3を入れる
+				if (MY_CHECK_STAR_PLAYER_COLL(player.coll) == 3)
+				{
+					Answer = 3;
+				}
+
+				//スター1を消す
+				if (mapData[tate][yoko] == h1)
+				{
+					map[tate][yoko].kind = m1;
+				}
+
+				//スター2を消す
+				if (mapData[tate][yoko] == h2)
+				{
+					map[tate][yoko].kind = m2;
+				}
+
+				//スター3を消す
+				if (mapData[tate][yoko] == h3)
+				{
+					map[tate][yoko].kind = m3;
+				}
+
 			}
 		}
 	}
 
-	//プレイヤーとスター2があたっていたらマップ上のすべてのスターを消す
-	if (MY_CHECK_STAR2_PLAYER_COLL(player.coll) == TRUE)
-	{
 		for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
 		{
 			for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
 			{
-				Kaitou = 2;
-
-				//スターを消す
-				if (mapData[tate][yoko] == h1 || mapData[tate][yoko] == h2 || mapData[tate][yoko] == h3)
+				if (map[tate][yoko].kind == m)
 				{
-					map[tate][yoko].kind = m;
+					if (TogeMove == TOGE_MOVE * 60 * map[tate][yoko].kind)
+					{
+						Togeflag = FALSE;
+					}
+
+					if (TogeMove == TOGE_MOVE * -60 * map[tate][yoko].kind)
+					{
+						Togeflag = TRUE;
+					}
+
+					if(Togeflag == TRUE)
+					{
+						map[tate][yoko].x += 2;
+						mapColl[tate][yoko].left += 2;
+						mapColl[tate][yoko].right += 2;
+						TogeMove += 1;
+					}
+
+					else if(Togeflag == FALSE)
+					{
+						map[tate][yoko].x -= 2;
+						mapColl[tate][yoko].left -= 2;
+						mapColl[tate][yoko].right -= 2;
+						TogeMove -= 1;
+					}
+
 				}
 			}
 		}
-	}
 
-	//プレイヤーとスター3があたっていたらマップ上のすべてのスターを消す
-	if (MY_CHECK_STAR3_PLAYER_COLL(player.coll) == TRUE)
+	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
 	{
-		for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
+		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
 		{
-			for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
+			if (map[tate][yoko].kind == a)
 			{
-				Kaitou = 3;
-
-				//スターを消す
-				if (mapData[tate][yoko] == h1 || mapData[tate][yoko] == h2 || mapData[tate][yoko] == h3)
-				{
-					map[tate][yoko].kind = m;
-				}
+				map[tate][yoko].x -= 2;
+				mapColl[tate][yoko].left -= 2;
+				mapColl[tate][yoko].right -= 2;
 			}
 		}
 	}
 
 	//プレイヤーとトゲがあたっていたらゲームオーバー画面に遷移
-	if (MY_CHECK_TOGE_PLAYER_COLL(player.coll) == TRUE)
+	if (MY_CHECK_TOGE_PLAYER_COLL(player.coll) == 1 || MY_CHECK_TOGE_PLAYER_COLL(player.coll) == 2)
 	{
 		if (CheckSoundMem(BGM_PLAY.handle) != 0)
 		{
@@ -845,7 +951,7 @@ VOID MY_PLAY_PROC(VOID)
 			StopSoundMem(BGM_PLAY.handle);	//BGMを止める
 		}
 
-		if (Kaitou == 1)
+		if (Answer == 1)
 		{
 			GameEndKind = GAME_END_CLEAR;	//ゲームクリア！
 		}
@@ -892,8 +998,8 @@ VOID MY_PLAY_DRAW(VOID)
 	{
 		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
 		{
-			//壁ならば
-			if (mapData[tate][yoko] == b)
+			//ブロックならば
+			if (mapData[tate][yoko] == b || mapData[tate][yoko] == a)
 			{
 				DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(0, 0, 255), FALSE);
 			}
@@ -917,7 +1023,7 @@ VOID MY_PLAY_DRAW(VOID)
 			}
 
 			//トゲならば
-			if (mapData[tate][yoko] == n)
+			if (mapData[tate][yoko] == n || mapData[tate][yoko] == m)
 			{
 				DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 150, 0), FALSE);
 			}
@@ -1130,7 +1236,7 @@ BOOL MY_LOAD_IMAGE(VOID)
 	player.CenterY = player.image.y + player.image.height / 2;		//画像の縦の中心を探す
 	player.speed = CHARA_SPEED_HIGH;								//スピードを設定
 
-		//マップの画像を分割する
+	//マップの画像を分割する
 	int mapRes = LoadDivGraph(
 		GAME_MAP_PATH,										//マップチップのパス
 		MAP_DIV_NUM, MAP_DIV_TATE, MAP_DIV_YOKO,			//マップチップを分割する数
@@ -1267,7 +1373,7 @@ BOOL MY_LOAD_MUSIC(VOID)
 	}
 
 	//ジャンプSEの読み込み
-	strcpy_s(BGM_JUMP1.path, MUSIC_JUMP1_PATH);		//パスの設定
+	strcpy_s(BGM_JUMP1.path, MUSIC_JUMP1_PATH);			//パスの設定
 	BGM_JUMP1.handle = LoadSoundMem(BGM_JUMP1.path);	//読み込み
 	if (BGM_JUMP1.handle == -1)
 	{
@@ -1277,7 +1383,7 @@ BOOL MY_LOAD_MUSIC(VOID)
 	}
 
 	//二段ジャンプSEの読み込み
-	strcpy_s(BGM_JUMP2.path, MUSIC_JUMP2_PATH);		//パスの設定
+	strcpy_s(BGM_JUMP2.path, MUSIC_JUMP2_PATH);		    //パスの設定
 	BGM_JUMP2.handle = LoadSoundMem(BGM_JUMP2.path);	//読み込み
 	if (BGM_JUMP2.handle == -1)
 	{
@@ -1325,7 +1431,7 @@ BOOL MY_CHECK_GOAL_PLAYER_COLL(RECT player)
 }
 
 //プレイヤーとブロックの当たり判定をする関数
-BOOL MY_CHECK_BLOCK_PLAYER_COLL(RECT player)
+int MY_CHECK_BLOCK_PLAYER_COLL(RECT player)
 {
 	//マップチップの当たり判定を設定する
 	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
@@ -1336,7 +1442,11 @@ BOOL MY_CHECK_BLOCK_PLAYER_COLL(RECT player)
 			if (MY_CHECK_RECT_COLL(player, mapColl[tate][yoko]) == TRUE)
 			{
 				//ブロックのときは、TRUEを返す
-				if (map[tate][yoko].kind == b) { return TRUE; }
+				if (map[tate][yoko].kind == b) { return 1; }
+
+				//ブロックのときは、TRUEを返す
+				if (map[tate][yoko].kind == a) { return 2; }
+
 			}
 		}
 	}
@@ -1346,7 +1456,7 @@ BOOL MY_CHECK_BLOCK_PLAYER_COLL(RECT player)
 }
 
 //プレイヤーとスターの当たり判定をする関数
-BOOL MY_CHECK_STAR1_PLAYER_COLL(RECT player)
+int MY_CHECK_STAR_PLAYER_COLL(RECT player)
 {
 	//マップチップの当たり判定を設定する
 	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
@@ -1357,49 +1467,14 @@ BOOL MY_CHECK_STAR1_PLAYER_COLL(RECT player)
 			if (MY_CHECK_RECT_COLL(player, mapColl[tate][yoko]) == TRUE)
 			{
 				//スターのときは、TRUEを返す
-				if (map[tate][yoko].kind == h1) { return TRUE; }
-			}
-		}
-	}
+				if (map[tate][yoko].kind == h1) { return 1; }
 
-	return FALSE;
-
-}
-
-//プレイヤーとスターの当たり判定をする関数
-BOOL MY_CHECK_STAR2_PLAYER_COLL(RECT player)
-{
-	//マップチップの当たり判定を設定する
-	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
-	{
-		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
-		{
-			//プレイヤーとスターが当たっているとき
-			if (MY_CHECK_RECT_COLL(player, mapColl[tate][yoko]) == TRUE)
-			{
 				//スターのときは、TRUEを返す
-				if (map[tate][yoko].kind == h2) { return TRUE; }
-			}
-		}
-	}
+				if (map[tate][yoko].kind == h2) { return 2; }
 
-	return FALSE;
-
-}
-
-//プレイヤーとスターの当たり判定をする関数
-BOOL MY_CHECK_STAR3_PLAYER_COLL(RECT player)
-{
-	//マップチップの当たり判定を設定する
-	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
-	{
-		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
-		{
-			//プレイヤーとスターが当たっているとき
-			if (MY_CHECK_RECT_COLL(player, mapColl[tate][yoko]) == TRUE)
-			{
 				//スターのときは、TRUEを返す
-				if (map[tate][yoko].kind == h3) { return TRUE; }
+				if (map[tate][yoko].kind == h3) { return 3; }
+
 			}
 		}
 	}
@@ -1409,7 +1484,7 @@ BOOL MY_CHECK_STAR3_PLAYER_COLL(RECT player)
 }
 
 //プレイヤーとトゲの当たり判定をする関数
-BOOL MY_CHECK_TOGE_PLAYER_COLL(RECT player)
+int MY_CHECK_TOGE_PLAYER_COLL(RECT player)
 {
 	//マップチップの当たり判定を設定する
 	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
@@ -1420,7 +1495,11 @@ BOOL MY_CHECK_TOGE_PLAYER_COLL(RECT player)
 			if (MY_CHECK_RECT_COLL(player, mapColl[tate][yoko]) == TRUE)
 			{
 				//トゲのときは、TRUEを返す
-				if (map[tate][yoko].kind == n) { return TRUE; }
+				if (map[tate][yoko].kind == n) { return 1; }
+
+				//トゲのときは、TRUEを返す
+				if (map[tate][yoko].kind == m) { return 2; }
+
 			}
 		}
 	}
