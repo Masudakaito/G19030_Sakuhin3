@@ -222,6 +222,7 @@ int WKeyflag = FALSE;			//Wキーを離しているかどうかのフラグ
 int Answer = 0;					//取ったスターを入れる変数
 int Togeflag = TRUE;			//動くトゲの切り返しのフラグ	
 int TogeMove = 0;				//トゲが動いた距離を測る変数
+int Cntm = 0;					//動くトゲのカウンター
 
 IMAGE ImageTitle;		//タイトル画面の背景画像
 IMAGE ImagePlay;		//プレイ画面の背景画像
@@ -248,12 +249,13 @@ GAME_MAP_KIND mapData[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
 		b,t,t,t,t,t,t,t,t,t,t,t,m,t,t,b,	// 1
 		b,t,g,n,t,t,t,t,h1,t,t,t,h2,n,t,b,	// 2
 		b,t,t,b,b,t,t,n,b,n,t,t,t,n,t,b,	// 3
-		b,t,t,t,t,t,t,t,t,t,t,t,t,n,t,b,	// 4
-		b,b,t,t,t,t,m,t,t,t,t,t,b,t,t,b,	// 5
+		b,t,t,t,t,t,t,t,t,t,m,t,t,n,t,b,	// 4
+		b,b,t,t,t,m,t,t,t,t,t,t,b,t,t,b,	// 5
 		b,t,t,t,t,t,t,n,t,t,t,t,b,t,t,b,	// 6
 		b,t,s,t,t,t,t,n,h3,t,t,t,b,t,g,b,	// 7
 		b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,	// 8
 };	//ゲームのマップ
+
 
 //ゲームマップの初期化
 GAME_MAP_KIND mapDataInit[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX];
@@ -366,6 +368,19 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	{
 		//エラーメッセージ表示
 		MessageBox(GetMainWindowHandle(), START_ERR_CAPTION, START_ERR_TITLE, MB_OK);	return -1;
+	}
+
+	//m(動くトゲ)をカウントする
+	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
+	{
+		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
+		{
+
+			if (map[tate][yoko].kind == m)
+			{
+				Cntm++;
+			}
+		}
 	}
 
 	//無限ループ
@@ -878,41 +893,40 @@ VOID MY_PLAY_PROC(VOID)
 		}
 	}
 
-		for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
+	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
+	{
+		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
 		{
-			for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
+			if (map[tate][yoko].kind == m)
 			{
-				if (map[tate][yoko].kind == m)
+				if (TogeMove == TOGE_MOVE * 60* Cntm)
 				{
-					if (TogeMove == TOGE_MOVE * 60 * map[tate][yoko].kind)
-					{
-						Togeflag = FALSE;
-					}
+					Togeflag = FALSE;
+				}
 
-					if (TogeMove == TOGE_MOVE * -60 * map[tate][yoko].kind)
-					{
-						Togeflag = TRUE;
-					}
+				if (TogeMove == TOGE_MOVE * -60* Cntm)
+				{
+					Togeflag = TRUE;
+				}
 
-					if(Togeflag == TRUE)
-					{
-						map[tate][yoko].x += 2;
-						mapColl[tate][yoko].left += 2;
-						mapColl[tate][yoko].right += 2;
-						TogeMove += 1;
-					}
+				if(Togeflag == TRUE)
+				{
+					map[tate][yoko].x += 2;
+					mapColl[tate][yoko].left += 2;
+					mapColl[tate][yoko].right += 2;
+					TogeMove ++;
+				}
 
-					else if(Togeflag == FALSE)
-					{
-						map[tate][yoko].x -= 2;
-						mapColl[tate][yoko].left -= 2;
-						mapColl[tate][yoko].right -= 2;
-						TogeMove -= 1;
-					}
-
+				if(Togeflag == FALSE)
+				{
+					map[tate][yoko].x -= 2;
+					mapColl[tate][yoko].left -= 2;
+					mapColl[tate][yoko].right -= 2;
+					TogeMove --;
 				}
 			}
 		}
+	}
 
 	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
 	{
