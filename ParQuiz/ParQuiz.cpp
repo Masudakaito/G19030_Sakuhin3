@@ -1,5 +1,6 @@
 //########## ヘッダーファイル読み込み ##########
 #include "DxLib.h"
+#include <math.h>
 
 //########## マクロ定義 ##########
 #define GAME_WIDTH			960	//画面の横の大きさ
@@ -9,7 +10,9 @@
 #define GAME_WINDOW_BAR		0					//タイトルバーはデフォルトにする
 #define GAME_WINDOW_NAME	"GAME TITLE"		//ウィンドウのタイトル
 
-#define GAME_FPS			60	//FPSの数値	
+#define GAME_PI							3.1415	//π
+#define GAME_FPS						60	//FPSの値
+#define GAME_HANKEI							30	//円の半径
 
 //マウスのボタン
 #define MOUSE_BUTTON_CODE	129	//0x0000～0x0080まで
@@ -21,7 +24,8 @@
 #define PATH_MAX			255	//255文字まで
 #define NAME_MAX			255	//255文字まで
 
-#define TOGE_MOVE           1	//トゲが横に1マスずつ動く
+#define TOGE_MOVE           2	//トゲが動く距離
+#define TOGE_SPEED          2	//トゲのスピード
 
 //フォント
 #define FONT_TANU_PATH			TEXT(".\\FONT\\TanukiMagic.ttf")	//フォントの場所
@@ -47,7 +51,7 @@
 
 #define IMG_SOUGEN				TEXT(".\\IMAGE\\sougen.png")			//タイトル画面の背景
 #define IMG_SORA				TEXT(".\\IMAGE\\sora.png")				//プレイ画面の背景
-#define IMG_MARU				TEXT(".\\IMAGE\\player.png")			//プレイヤーの画像
+#define IMG_MARU				TEXT(".\\IMAGE\\player2.png")			//プレイヤーの画像
 #define IMG_LOGO				TEXT(".\\IMAGE\\ParQuiz.png")			//ロゴの画像
 #define IMG_LOGO_CLEAR			TEXT(".\\IMAGE\\logo_end.png")			//クリアの画像
 #define IMG_LOGO_OVER			TEXT(".\\IMAGE\\logo_end2.png")			//ゲームオーバーの画像
@@ -154,6 +158,7 @@ typedef struct STRUCT_IMAGE
 	int y;						//Y位置
 	int width;					//幅
 	int height;					//高さ
+	double radian;				//ラジアン(角度)
 	BOOL IsDraw = FALSE;		//描画できるか
 
 }IMAGE;	//画像構造体
@@ -171,6 +176,8 @@ typedef struct STRUCT_CHARA
 	int speed;					//速さ
 	int CenterX;				//中心X
 	int CenterY;				//中心Y
+
+	double radian;				//ラジアン(角度)
 
 	RECT coll;					//当たり判定
 	iPOINT collBeforePt;		//当たる前の座標
@@ -196,6 +203,13 @@ typedef struct STRUCT_MAP
 	int height;					//高さ
 }MAP;	//MAP構造体
 
+struct MY_CIRCLE
+{
+	int x;		//横の位置
+	int y;		//縦の位置
+	int radius;	//半径
+};	//円の構造体
+
 //########## グローバル変数 ##########
 //FPS関連
 int StartTimeFps;				//測定開始時刻
@@ -220,6 +234,8 @@ int Jumpflag = TRUE;			//ジャンプフラグ
 int WJumpflag = FALSE;			//２段ジャンプフラグ
 int WKeyflag = FALSE;			//Wキーを離しているかどうかのフラグ
 int Answer = 0;					//取ったスターを入れる変数
+int Toge = TOGE_MOVE;			//トゲが動く距離
+int TogeSpeed = TOGE_SPEED;		//トゲのスピード
 int Togeflag = TRUE;			//動くトゲの切り返しのフラグ	
 int TogeMove = 0;				//トゲが動いた距離を測る変数
 int Cntm = 0;					//動くトゲのカウンター
@@ -274,6 +290,8 @@ RECT mapColl[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX];
 
 //ゴールの当たり判定
 RECT goalColl[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX];
+
+MY_CIRCLE en;
 
 //########## プロトタイプ宣言 ##########
 VOID MY_FPS_UPDATE(VOID);			//FPS値を計測、更新する
@@ -345,7 +363,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	GameScene = GAME_SCENE_START;	//ゲームシーンはスタート画面から
 	SetDrawScreen(DX_SCREEN_BACK);	//Draw系関数は裏画面に描画
 
-		//プレイヤーの最初の位置を、スタート位置にする
+	//プレイヤーの最初の位置を、スタート位置にする
 	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
 	{
 		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
@@ -689,7 +707,7 @@ VOID MY_PLAY_INIT(VOID)
 		}
 	}
 
-	Answer = 0;
+	Answer = 0;		//持っている回答を消す
 
 	return;
 }
@@ -797,7 +815,6 @@ VOID MY_PLAY_PROC(VOID)
 	// 落下加速度を加える
 	JumpPower -= 1;
 
-
 	/*▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ジャンプの処理▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲*/
 
 	//Dキーで右へ進む
@@ -815,10 +832,10 @@ VOID MY_PLAY_PROC(VOID)
 	}
 
 	//当たり判定
-	player.coll.left = player.CenterX - mapChip.width / 2 + 1;
-	player.coll.top = player.CenterY - mapChip.height / 2 + 1;
-	player.coll.right = player.CenterX + mapChip.width / 2 - 1;
-	player.coll.bottom = player.CenterY + mapChip.height / 2 - 1;
+	player.coll.left = player.CenterX - mapChip.width / 2;
+	player.coll.top = player.CenterY - mapChip.height / 2;
+	player.coll.right = player.CenterX + mapChip.width / 2 - 10;
+	player.coll.bottom = player.CenterY + mapChip.height / 2 - 10;
 
 	//プレイヤーとブロックが当たっていたら直前の位置へ戻る
 	if (MY_CHECK_BLOCK_PLAYER_COLL(player.coll) == 1)
@@ -893,36 +910,41 @@ VOID MY_PLAY_PROC(VOID)
 		}
 	}
 
+	//動くトゲの処理
 	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
 	{
 		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
 		{
 			if (map[tate][yoko].kind == m)
 			{
-				if (TogeMove == TOGE_MOVE * 60* Cntm)
+				//TOGE_MOVEの数だけずれたらTogeflagをFALSEにする
+				if (TogeMove == Toge * 60* Cntm)
 				{
 					Togeflag = FALSE;
 				}
 
-				if (TogeMove == TOGE_MOVE * -60* Cntm)
+				//TOGE_MOVEの数だけずれたらTogeflagをTRUEにする
+				if (TogeMove == Toge * -60* Cntm)
 				{
 					Togeflag = TRUE;
 				}
 
+				//TogeflagがTRUEなら右に動く
 				if(Togeflag == TRUE)
 				{
-					map[tate][yoko].x += 2;
-					mapColl[tate][yoko].left += 2;
-					mapColl[tate][yoko].right += 2;
-					TogeMove ++;
+					map[tate][yoko].x += TogeSpeed;
+					mapColl[tate][yoko].left += TogeSpeed;
+					mapColl[tate][yoko].right += TogeSpeed;
+					TogeMove += TogeSpeed;
 				}
 
+				//TogeflagがFALSEなら右に動く
 				if(Togeflag == FALSE)
 				{
-					map[tate][yoko].x -= 2;
-					mapColl[tate][yoko].left -= 2;
-					mapColl[tate][yoko].right -= 2;
-					TogeMove --;
+					map[tate][yoko].x -= TogeSpeed;
+					mapColl[tate][yoko].left -= TogeSpeed;
+					mapColl[tate][yoko].right -= TogeSpeed;
+					TogeMove -= TogeSpeed;
 				}
 			}
 		}
@@ -956,7 +978,7 @@ VOID MY_PLAY_PROC(VOID)
 
 	}
 
-	//プレイヤーとゴールがあたっていたら
+	//プレイヤーとゴールがあたっていたらゲームクリア画面に遷移
 	if (MY_CHECK_GOAL_PLAYER_COLL(player.coll) == TRUE)
 	{
 
@@ -1246,8 +1268,6 @@ BOOL MY_LOAD_IMAGE(VOID)
 	GetGraphSize(player.image.handle, &player.image.width, &player.image.height);	//画像の幅と高さを取得
 	player.image.x = GAME_WIDTH / 2 - player.image.width / 2;		//左右中央揃え
 	player.image.y = GAME_HEIGHT / 2 - player.image.height / 2;		//上下中央揃え
-	player.CenterX = player.image.x + player.image.width / 2;		//画像の横の中心を探す
-	player.CenterY = player.image.y + player.image.height / 2;		//画像の縦の中心を探す
 	player.speed = CHARA_SPEED_HIGH;								//スピードを設定
 
 	//マップの画像を分割する
