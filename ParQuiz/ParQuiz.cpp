@@ -687,6 +687,7 @@ VOID MY_PLAY_INIT(VOID)
 	player.image.y = startPt.y - 40;
 	player.CenterY = startPt.y - 10;
 
+	//ƒXƒ^[‚ğŒ³‚É–ß‚·
 	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
 	{
 		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
@@ -704,10 +705,30 @@ VOID MY_PLAY_INIT(VOID)
 			{
 				map[tate][yoko].kind = h3;
 			}
+
+			if (map[tate][yoko].kind == m)
+			{
+
+				if (TogeMove < 0)
+				{
+					map[tate][yoko].x -= TogeMove / Cntm;
+					mapColl[tate][yoko].left -= TogeMove / Cntm;
+					mapColl[tate][yoko].right -= TogeMove / Cntm;
+				}
+
+				if (TogeMove > 0)
+				{
+					map[tate][yoko].x -= TogeMove / Cntm;
+					mapColl[tate][yoko].left -= TogeMove / Cntm;
+					mapColl[tate][yoko].right -= TogeMove / Cntm;
+				}
+			}
 		}
 	}
 
 	Answer = 0;		//‚Á‚Ä‚¢‚é‰ñ“š‚ğÁ‚·
+	Togeflag = TRUE;
+	TogeMove = 0;
 
 	return;
 }
@@ -917,13 +938,13 @@ VOID MY_PLAY_PROC(VOID)
 		{
 			if (map[tate][yoko].kind == m)
 			{
-				//TOGE_MOVE‚Ì”‚¾‚¯‚¸‚ê‚½‚çTogeflag‚ğFALSE‚É‚·‚é
+				//Toge‚Ì”‚¾‚¯‚¸‚ê‚½‚çTogeflag‚ğFALSE‚É‚·‚é
 				if (TogeMove == Toge * 60* Cntm)
 				{
 					Togeflag = FALSE;
 				}
 
-				//TOGE_MOVE‚Ì”‚¾‚¯‚¸‚ê‚½‚çTogeflag‚ğTRUE‚É‚·‚é
+				//Toge‚Ì”‚¾‚¯‚¸‚ê‚½‚çTogeflag‚ğTRUE‚É‚·‚é
 				if (TogeMove == Toge * -60* Cntm)
 				{
 					Togeflag = TRUE;
