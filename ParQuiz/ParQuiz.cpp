@@ -92,9 +92,9 @@ enum GAME_MAP_KIND
 	g = 2,	//ゴール
 	d = 3,	//トゲ2(デンジャー)
 	n = 4,	//トゲ(ニードル)
-	h1= 5,	//星1
-	h2= 6,	//星2
-	h3= 7,	//星3
+	h1 = 5,	//星1
+	h2 = 6,	//星2
+	h3 = 7,	//星3
 	m = 8,	//トゲ(ムーブ)
 	a = 9,  //動くブロック
 	t = 10,	//通路
@@ -694,7 +694,7 @@ VOID MY_PLAY_INIT(VOID)
 		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
 		{
 
-		//スターを元に戻す
+			//スターを元に戻す
 			if (map[tate][yoko].kind == m1)
 			{
 				map[tate][yoko].kind = h1;
@@ -709,7 +709,7 @@ VOID MY_PLAY_INIT(VOID)
 				map[tate][yoko].kind = h3;
 			}
 
-		//動くトゲの位置を初期化
+			//動くトゲの位置を初期化
 			if (map[tate][yoko].kind == m)
 			{
 
@@ -876,19 +876,19 @@ VOID MY_PLAY_PROC(VOID)
 				}
 
 				//スター1を消す
-				if (mapData[tate][yoko] == h1)
+				if (map[tate][yoko].kind == h1)
 				{
 					map[tate][yoko].kind = m1;
 				}
 
 				//スター2を消す
-				if (mapData[tate][yoko] == h2)
+				if (map[tate][yoko].kind == h2)
 				{
 					map[tate][yoko].kind = m2;
 				}
 
 				//スター3を消す
-				if (mapData[tate][yoko] == h3)
+				if (map[tate][yoko].kind == h3)
 				{
 					map[tate][yoko].kind = m3;
 				}
@@ -905,19 +905,19 @@ VOID MY_PLAY_PROC(VOID)
 			if (map[tate][yoko].kind == m)
 			{
 				//Togeの数だけずれたらTogeflagをFALSEにする
-				if (TogeMove == Toge * 60* Cntm)
+				if (TogeMove == Toge * 60 * Cntm)
 				{
 					Togeflag = FALSE;
 				}
 
 				//Togeの数だけずれたらTogeflagをTRUEにする
-				if (TogeMove == Toge * -60* Cntm)
+				if (TogeMove == Toge * -60 * Cntm)
 				{
 					Togeflag = TRUE;
 				}
 
 				//TogeflagがTRUEなら右に動く
-				if(Togeflag == TRUE)
+				if (Togeflag == TRUE)
 				{
 					map[tate][yoko].x += TogeSpeed;
 					mapColl[tate][yoko].left += TogeSpeed;
@@ -926,7 +926,7 @@ VOID MY_PLAY_PROC(VOID)
 				}
 
 				//TogeflagがFALSEなら右に動く
-				if(Togeflag == FALSE)
+				if (Togeflag == FALSE)
 				{
 					map[tate][yoko].x -= TogeSpeed;
 					mapColl[tate][yoko].left -= TogeSpeed;
@@ -1023,7 +1023,7 @@ VOID MY_PLAY_DRAW(VOID)
 			//ゴールならば
 			if (mapData[tate][yoko] == g)
 			{
-				DrawBox(goalColl[tate][yoko].left, goalColl[tate][yoko].top, goalColl[tate][yoko].right, goalColl[tate][yoko].bottom, GetColor(0, 255,0), FALSE);
+				DrawBox(goalColl[tate][yoko].left, goalColl[tate][yoko].top, goalColl[tate][yoko].right, goalColl[tate][yoko].bottom, GetColor(0, 255, 0), FALSE);
 			}
 
 			//スターならば
@@ -1121,14 +1121,14 @@ VOID MY_END_DRAW(VOID)
 		//コンプリートのとき
 
 			//コンプリートの描画
-			DrawGraph(ImageTitleCLEAR.x, ImageTitleCLEAR.y, ImageTitleCLEAR.handle, TRUE);
+		DrawGraph(ImageTitleCLEAR.x, ImageTitleCLEAR.y, ImageTitleCLEAR.handle, TRUE);
 		break;
 
 	case GAME_END_OVER:
 		//フォールトのとき
 
 			//フォールトの描画
-			DrawGraph(ImageTitleOVER.x, ImageTitleOVER.y, ImageTitleOVER.handle, TRUE);
+		DrawGraph(ImageTitleOVER.x, ImageTitleOVER.y, ImageTitleOVER.handle, TRUE);
 		break;
 	}
 
