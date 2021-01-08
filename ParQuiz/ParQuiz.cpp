@@ -107,6 +107,12 @@ enum GAME_SCENE {
 	GAME_SCENE_END,
 };	//ゲームのシーン
 
+enum GAME_STAGE {
+	GAME_STAGE_1,
+	GAME_STAGE_2,
+	GAME_STAGE_3,
+};
+
 enum CHARA_SPEED {
 	CHARA_SPEED_LOW = 1,
 	CHARA_SPEED_MIDI = 2,
@@ -228,6 +234,8 @@ MOUSE mouse;
 //ゲーム関連
 int GameScene;			//ゲームシーンを管理
 
+int GameStage;			//ゲームのステージを管理
+
 int GameEndKind;		//ゲームの終了状態
 
 int JumpPower = 0;				//ジャンプスピード初期化
@@ -274,15 +282,33 @@ GAME_MAP_KIND mapData[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
 		b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,	// 8
 };	//ゲームのマップ
 
+GAME_MAP_KIND mapData2[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
+	//  0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5
+		b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,	// 0
+		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 1
+		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 2
+		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 3
+		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 4
+		b,t,t,t,h1,t,t,b,t,t,b,t,t,t,t,b,	// 5
+		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 6
+		b,s,t,t,t,t,t,t,t,t,t,t,t,t,g,b,	// 7
+		b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,	// 8
+};	//ゲームのマップ
 
 //ゲームマップの初期化
 GAME_MAP_KIND mapDataInit[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX];
+
+//ゲームマップの初期化
+GAME_MAP_KIND mapData2Init[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX];
 
 //マップチップの画像を管理
 MAPCHIP mapChip;
 
 //マップの場所を管理
 MAP map[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX];
+
+//マップの場所を管理
+MAP map2[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX];
 
 //スタートの位置
 iPOINT startPt{ -1,-1 };
@@ -319,6 +345,9 @@ VOID MY_PLAY(VOID);					//プレイ画面
 VOID MY_PLAY_PROC(VOID);			//プレイ画面の処理
 VOID MY_PLAY_DRAW(VOID);			//プレイ画面の描画
 
+VOID MY_PLAY_PROC_STAGE2(VOID);			//プレイ画面の処理
+VOID MY_PLAY_DRAW_STAGE2(VOID);			//プレイ画面の描画
+
 VOID MY_END(VOID);					//エンド画面
 VOID MY_END_PROC(VOID);				//エンド画面の処理
 VOID MY_END_DRAW(VOID);				//エンド画面の描画
@@ -328,6 +357,8 @@ VOID MY_DELETE_IMAGE(VOID);			//画像をまとめて削除する関数
 
 BOOL MY_LOAD_MUSIC(VOID);			//音楽をまとめて読み込む関数
 VOID MY_DELETE_MUSIC(VOID);			//音楽をまとめて削除する関数
+
+VOID PLAYER_JUMP(VOID);				//プレイヤーの動きの処理の関数
 
 BOOL MY_CHECK_GOAL_PLAYER_COLL(RECT);	//ゴールとプレイヤーの当たり判定をする関数
 int MY_CHECK_BLOCK_PLAYER_COLL(RECT);	//ブロックとプレイヤーの当たり判定をする関数
@@ -361,8 +392,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//フォントハンドルを作成
 	if (MY_FONT_CREATE() == FALSE) { return -1; }
 
-
 	GameScene = GAME_SCENE_START;	//ゲームシーンはスタート画面から
+
+	GameStage = GAME_STAGE_2;
+
 	SetDrawScreen(DX_SCREEN_BACK);	//Draw系関数は裏画面に描画
 
 	//プレイヤーの最初の位置を、スタート位置にする
@@ -656,6 +689,8 @@ VOID MY_START_PROC(VOID)
 		//ゲームの終了状態を初期化する
 		GameEndKind = GAME_END_OVER;
 
+		GameStage = GAME_STAGE_2;
+
 		//ゲームのシーンをプレイ画面にする
 		GameScene = GAME_SCENE_PLAY;
 
@@ -741,9 +776,17 @@ VOID MY_PLAY_INIT(VOID)
 //プレイ画面
 VOID MY_PLAY(VOID)
 {
-	MY_PLAY_PROC();	//プレイ画面の処理
-	MY_PLAY_DRAW();	//プレイ画面の描画
-
+	switch (GameStage)
+	{
+	case GAME_STAGE_1:
+		MY_PLAY_PROC();	//プレイ画面の処理
+		MY_PLAY_DRAW();	//プレイ画面の描画
+		break;
+	case GAME_STAGE_2:
+		MY_PLAY_PROC_STAGE2();	//プレイ画面の処理
+		MY_PLAY_DRAW_STAGE2();	//プレイ画面の描画
+		break;
+	}
 	return;
 }
 
@@ -764,66 +807,7 @@ VOID MY_PLAY_PROC(VOID)
 	player.collBeforePt.x = player.CenterX;
 	player.collBeforePt.y = player.CenterY;
 
-	/*▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ジャンプの処理▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼*/
-
-	//ジャンプフラグがTRUEでWキーを押していてプレイヤーとブロックがあたっていたらジャンプ
-	if (Jumpflag == TRUE && CheckHitKey(KEY_INPUT_W) == TRUE && MY_CHECK_BLOCK_PLAYER_COLL(player.coll) == 1)
-	{
-		//ジャンプSEを流す
-		ChangeVolumeSoundMem(255 * 60 / 100, BGM_JUMP1.handle);	//80%の音量にする
-		PlaySoundMem(BGM_JUMP1.handle, DX_PLAYTYPE_BACK);
-
-		JumpPower = 13;			//約1ブロック分のジャンプ
-		Jumpflag = FALSE;		//ジャンプフラグをFALSEにする
-		WKeyflag = TRUE;		//WキーフラグをTRUEにする
-	}
-
-	//二段ジャンプフラグがTRUEでWキーを押していたら空中ジャンプ
-	if (WJumpflag == TRUE && CheckHitKey(KEY_INPUT_W) == TRUE)
-	{
-		//二段ジャンプSEを流す
-		ChangeVolumeSoundMem(255 * 60 / 100, BGM_JUMP2.handle);	//80%の音量にする
-		PlaySoundMem(BGM_JUMP2.handle, DX_PLAYTYPE_BACK);
-
-		JumpPower = 13;			//２ブロック分のジャンプ
-		WJumpflag = FALSE;		//二段ジャンプフラグをFALSEにする
-		WKeyflag = FALSE;		//WキーフラグをTRUEにする
-	}
-
-	//Wキーを離してプレイヤーが地面につくと
-	if (CheckHitKey(KEY_INPUT_W) == FALSE && MY_CHECK_BLOCK_PLAYER_COLL(player.coll) == 1)
-	{
-		Jumpflag = TRUE;		//ジャンプフラグをTRUEにし、ジャンプができるようになる
-	}
-
-	//WキーフラグがTRUEかつWキーを離すと
-	if (WKeyflag == TRUE && CheckHitKey(KEY_INPUT_W) == FALSE)
-	{
-		WJumpflag = TRUE;		//二段ジャンプフラグをTRUEにし、二段ジャンプができるようになる
-	}
-
-	// 落下処理
-	player.CenterY -= JumpPower;
-	player.image.y -= JumpPower;
-
-	// 落下加速度を加える
-	JumpPower -= 1;
-
-	/*▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ジャンプの処理▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲*/
-
-	//Dキーで右へ進む
-	if (CheckHitKey(KEY_INPUT_D) == TRUE)
-	{
-		player.image.x += player.speed;
-		player.CenterX += player.speed;
-	}
-
-	//Aキーで左へ進む
-	if (CheckHitKey(KEY_INPUT_A) == TRUE)
-	{
-		player.image.x -= player.speed;
-		player.CenterX -= player.speed;
-	}
+	PLAYER_JUMP();		//プレイヤーの動きの処理
 
 	//当たり判定
 	player.coll.left = player.CenterX - mapChip.width / 2;
@@ -980,6 +964,180 @@ VOID MY_PLAY_PROC(VOID)
 
 }
 
+//プレイ画面の処理
+VOID MY_PLAY_PROC_STAGE2(VOID)
+{
+
+	//BGMが流れていないなら
+	if (CheckSoundMem(BGM_PLAY.handle) == 0)
+	{
+		//BGMの音量を下げる
+		ChangeVolumeSoundMem(255 * 30 / 100, BGM_PLAY.handle);	//50%の音量にする
+		PlaySoundMem(BGM_PLAY.handle, DX_PLAYTYPE_LOOP);
+
+	}
+
+	//プレイヤーの当たる以前の位置を設定する
+	player.collBeforePt.x = player.CenterX;
+	player.collBeforePt.y = player.CenterY;
+
+	PLAYER_JUMP();		//プレイヤーの動きの処理
+
+	//当たり判定
+	player.coll.left = player.CenterX - mapChip.width / 2;
+	player.coll.top = player.CenterY - mapChip.height / 2;
+	player.coll.right = player.CenterX + mapChip.width / 2 - 10;
+	player.coll.bottom = player.CenterY + mapChip.height / 2 - 10;
+
+	//プレイヤーとブロックが当たっていたら直前の位置へ戻る
+	if (MY_CHECK_BLOCK_PLAYER_COLL(player.coll) == 1)
+	{
+		player.CenterX = player.collBeforePt.x;
+		player.CenterY = player.collBeforePt.y;
+		player.image.x = player.collBeforePt.x - 30;
+		player.image.y = player.collBeforePt.y - 30;
+		JumpPower = 0;
+		WJumpflag = FALSE;	//二段ジャンプフラグをFALSE
+		WKeyflag = FALSE;	//WキーフラグをFALSE
+	}
+
+	//プレイヤーとスターがあたっていたらマップ上のすべてのスターを消す
+	if (MY_CHECK_STAR_PLAYER_COLL(player.coll) == 1 ||
+		MY_CHECK_STAR_PLAYER_COLL(player.coll) == 2 ||
+		MY_CHECK_STAR_PLAYER_COLL(player.coll) == 3)
+	{
+
+		//スターSEを流す
+		ChangeVolumeSoundMem(255 * 50 / 100, BGM_STAR.handle);	//50%の音量にする
+		PlaySoundMem(BGM_STAR.handle, DX_PLAYTYPE_BACK);
+
+		for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
+		{
+			for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
+			{
+				//スター1に当たっていたらAnswerに1を入れる
+				if (MY_CHECK_STAR_PLAYER_COLL(player.coll) == 1)
+				{
+					Answer = 1;
+				}
+
+				//スター2に当たっていたらAnswerに2を入れる
+				if (MY_CHECK_STAR_PLAYER_COLL(player.coll) == 2)
+				{
+					Answer = 2;
+				}
+
+				//スター3に当たっていたらAnswerに3を入れる
+				if (MY_CHECK_STAR_PLAYER_COLL(player.coll) == 3)
+				{
+					Answer = 3;
+				}
+
+				//スター1を消す
+				if (map2[tate][yoko].kind == h1)
+				{
+					map2[tate][yoko].kind = m1;
+				}
+
+				//スター2を消す
+				if (map2[tate][yoko].kind == h2)
+				{
+					map2[tate][yoko].kind = m2;
+				}
+
+				//スター3を消す
+				if (map2[tate][yoko].kind == h3)
+				{
+					map2[tate][yoko].kind = m3;
+				}
+
+			}
+		}
+	}
+
+	//動くトゲの処理
+	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
+	{
+		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
+		{
+			if (map2[tate][yoko].kind == m)
+			{
+				//Togeの数だけずれたらTogeflagをFALSEにする
+				if (TogeMove == Toge * 60 * Cntm)
+				{
+					Togeflag = FALSE;
+				}
+
+				//Togeの数だけずれたらTogeflagをTRUEにする
+				if (TogeMove == Toge * -60 * Cntm)
+				{
+					Togeflag = TRUE;
+				}
+
+				//TogeflagがTRUEなら右に動く
+				if (Togeflag == TRUE)
+				{
+					map2[tate][yoko].x += TogeSpeed;
+					mapColl[tate][yoko].left += TogeSpeed;
+					mapColl[tate][yoko].right += TogeSpeed;
+					TogeMove += TogeSpeed;
+				}
+
+				//TogeflagがFALSEなら右に動く
+				if (Togeflag == FALSE)
+				{
+					map2[tate][yoko].x -= TogeSpeed;
+					mapColl[tate][yoko].left -= TogeSpeed;
+					mapColl[tate][yoko].right -= TogeSpeed;
+					TogeMove -= TogeSpeed;
+				}
+			}
+		}
+	}
+
+	//プレイヤーとトゲがあたっていたらゲームオーバー画面に遷移
+	if (MY_CHECK_TOGE_PLAYER_COLL(player.coll) == 1 || MY_CHECK_TOGE_PLAYER_COLL(player.coll) == 2)
+	{
+		if (CheckSoundMem(BGM_PLAY.handle) != 0)
+		{
+			StopSoundMem(BGM_PLAY.handle);	//BGMを止める
+		}
+
+		GameEndKind = GAME_END_OVER;	//ゲームオーバー！
+
+		//ゲームのシーンをエンド画面にする
+		GameScene = GAME_SCENE_END;
+
+	}
+
+	//プレイヤーとゴールがあたっていたらゲームクリア画面に遷移
+	if (MY_CHECK_GOAL_PLAYER_COLL(player.coll) == TRUE)
+	{
+
+		if (CheckSoundMem(BGM_PLAY.handle) != 0)
+		{
+			StopSoundMem(BGM_PLAY.handle);	//BGMを止める
+		}
+
+		if (Answer == 1)
+		{
+			GameEndKind = GAME_END_CLEAR;	//ゲームクリア！
+		}
+
+		else
+		{
+			GameEndKind = GAME_END_OVER;
+		}
+
+		//ゲームのシーンをエンド画面にする
+		GameScene = GAME_SCENE_END;
+
+	}
+
+	return;
+
+}
+
 //プレイ画面の描画
 VOID MY_PLAY_DRAW(VOID)
 {
@@ -1003,46 +1161,31 @@ VOID MY_PLAY_DRAW(VOID)
 		}
 	}
 
-	//当たり判定の描画（デバッグ用）
+	return;
+}
+
+//プレイ画面の描画
+VOID MY_PLAY_DRAW_STAGE2(VOID)
+{
+
+	//プレイ画面背景を描画する
+	DrawGraph(ImagePlay.x, ImagePlay.y, ImagePlay.handle, TRUE);
+
+	//プレイヤーを描画する
+	DrawGraph(player.image.x, player.image.y, player.image.handle, TRUE);
+
+	//マップチップを描画する
 	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
 	{
 		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
 		{
-			//ブロックならば
-			if (mapData[tate][yoko] == b || mapData[tate][yoko] == a)
-			{
-				DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(0, 0, 255), FALSE);
-			}
-
-			//通路ならば
-			if (mapData[tate][yoko] == t)
-			{
-				DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 255, 0), FALSE);
-			}
-
-			//ゴールならば
-			if (mapData[tate][yoko] == g)
-			{
-				DrawBox(goalColl[tate][yoko].left, goalColl[tate][yoko].top, goalColl[tate][yoko].right, goalColl[tate][yoko].bottom, GetColor(0, 255, 0), FALSE);
-			}
-
-			//スターならば
-			if (mapData[tate][yoko] == h1 || mapData[tate][yoko] == h2 || mapData[tate][yoko] == h3)
-			{
-				DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 0, 255), FALSE);
-			}
-
-			//トゲならば
-			if (mapData[tate][yoko] == n || mapData[tate][yoko] == m)
-			{
-				DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 150, 0), FALSE);
-			}
-
+			DrawGraph(
+				map[tate][yoko].x,
+				map[tate][yoko].y,
+				mapChip.handle[map2[tate][yoko].kind],
+				TRUE);
 		}
 	}
-
-	//プレーヤー当たり判定の描画（デバッグ用）
-	DrawBox(player.coll.left, player.coll.top, player.coll.right, player.coll.bottom, GetColor(255, 0, 0), FALSE);
 
 	return;
 }
@@ -1278,6 +1421,7 @@ BOOL MY_LOAD_IMAGE(VOID)
 			//マップの座標を設定
 			map[tate][yoko].x = yoko * map[tate][yoko].width;
 			map[tate][yoko].y = tate * map[tate][yoko].height;
+
 		}
 	}
 
@@ -1541,4 +1685,67 @@ BOOL MY_CHECK_RECT_COLL(RECT a, RECT b)
 	}
 
 	return FALSE;		//当たっていない
+}
+
+//プレイヤーの動きの処理の関数
+VOID PLAYER_JUMP(VOID)
+{
+
+	//ジャンプフラグがTRUEでWキーを押していてプレイヤーとブロックがあたっていたらジャンプ
+	if (Jumpflag == TRUE && CheckHitKey(KEY_INPUT_W) == TRUE && MY_CHECK_BLOCK_PLAYER_COLL(player.coll) == 1)
+	{
+		//ジャンプSEを流す
+		ChangeVolumeSoundMem(255 * 60 / 100, BGM_JUMP1.handle);	//80%の音量にする
+		PlaySoundMem(BGM_JUMP1.handle, DX_PLAYTYPE_BACK);
+
+		JumpPower = 13;			//約1ブロック分のジャンプ
+		Jumpflag = FALSE;		//ジャンプフラグをFALSEにする
+		WKeyflag = TRUE;		//WキーフラグをTRUEにする
+	}
+
+	//二段ジャンプフラグがTRUEでWキーを押していたら空中ジャンプ
+	if (WJumpflag == TRUE && CheckHitKey(KEY_INPUT_W) == TRUE)
+	{
+		//二段ジャンプSEを流す
+		ChangeVolumeSoundMem(255 * 60 / 100, BGM_JUMP2.handle);	//80%の音量にする
+		PlaySoundMem(BGM_JUMP2.handle, DX_PLAYTYPE_BACK);
+
+		JumpPower = 13;			//２ブロック分のジャンプ
+		WJumpflag = FALSE;		//二段ジャンプフラグをFALSEにする
+		WKeyflag = FALSE;		//WキーフラグをTRUEにする
+	}
+
+	//Wキーを離してプレイヤーが地面につくと
+	if (CheckHitKey(KEY_INPUT_W) == FALSE && MY_CHECK_BLOCK_PLAYER_COLL(player.coll) == 1)
+	{
+		Jumpflag = TRUE;		//ジャンプフラグをTRUEにし、ジャンプができるようになる
+	}
+
+	//WキーフラグがTRUEかつWキーを離すと
+	if (WKeyflag == TRUE && CheckHitKey(KEY_INPUT_W) == FALSE)
+	{
+		WJumpflag = TRUE;		//二段ジャンプフラグをTRUEにし、二段ジャンプができるようになる
+	}
+
+	// 落下処理
+	player.CenterY -= JumpPower;
+	player.image.y -= JumpPower;
+
+	// 落下加速度を加える
+	JumpPower -= 1;
+
+	//Dキーで右へ進む
+	if (CheckHitKey(KEY_INPUT_D) == TRUE)
+	{
+		player.image.x += player.speed;
+		player.CenterX += player.speed;
+	}
+
+	//Aキーで左へ進む
+	if (CheckHitKey(KEY_INPUT_A) == TRUE)
+	{
+		player.image.x -= player.speed;
+		player.CenterX -= player.speed;
+	}
+
 }
