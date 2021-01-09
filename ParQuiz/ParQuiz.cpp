@@ -289,7 +289,7 @@ GAME_MAP_KIND mapData2[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
 		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 2
 		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 3
 		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 4
-		b,t,t,t,h1,t,t,b,t,t,b,t,t,t,t,b,	// 5
+		b,t,t,t,h1,t,t,t,t,t,t,t,t,t,t,b,	// 5
 		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 6
 		b,s,t,t,t,t,t,t,t,t,t,t,t,t,g,b,	// 7
 		b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,	// 8
@@ -381,6 +381,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	if (DxLib_Init() == -1) { return -1; }	//ＤＸライブラリ初期化処理
 
+	GameStage = GAME_STAGE_1;		//ゲームステージはステージ1から
+
+	GameScene = GAME_SCENE_START;	//ゲームシーンはスタート画面から
+
 	//画像を読み込む
 	if (MY_LOAD_IMAGE() == FALSE) { return -1; }
 
@@ -391,10 +395,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	if (MY_FONT_INSTALL_ONCE() == FALSE) { return -1; }
 	//フォントハンドルを作成
 	if (MY_FONT_CREATE() == FALSE) { return -1; }
-
-	GameScene = GAME_SCENE_START;	//ゲームシーンはスタート画面から
-
-	GameStage = GAME_STAGE_2;
 
 	SetDrawScreen(DX_SCREEN_BACK);	//Draw系関数は裏画面に描画
 
@@ -689,8 +689,6 @@ VOID MY_START_PROC(VOID)
 		//ゲームの終了状態を初期化する
 		GameEndKind = GAME_END_OVER;
 
-		GameStage = GAME_STAGE_2;
-
 		//ゲームのシーンをプレイ画面にする
 		GameScene = GAME_SCENE_PLAY;
 
@@ -717,6 +715,39 @@ VOID MY_START_DRAW(VOID)
 //プレイ画面初期化
 VOID MY_PLAY_INIT(VOID)
 {
+
+	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
+	{
+		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
+		{
+			switch (GameStage)
+			{
+			case GAME_STAGE_1:
+
+				//マップの種類をコピー
+				map[tate][yoko].kind = mapData[tate][yoko];
+
+				break;
+
+			case GAME_STAGE_2:
+
+				//マップの種類をコピー
+				map[tate][yoko].kind = mapData2[tate][yoko];
+
+				break;
+
+			}
+
+			//マップの幅と高さをコピー
+			map[tate][yoko].width = mapChip.width;
+			map[tate][yoko].height = mapChip.height;
+
+			//マップの座標を設定
+			map[tate][yoko].x = yoko * map[tate][yoko].width;
+			map[tate][yoko].y = tate * map[tate][yoko].height;
+
+		}
+	}
 
 	//プレイヤーをスタート位置に描画
 	player.image.x = startPt.x - 30;
@@ -776,17 +807,9 @@ VOID MY_PLAY_INIT(VOID)
 //プレイ画面
 VOID MY_PLAY(VOID)
 {
-	switch (GameStage)
-	{
-	case GAME_STAGE_1:
+
 		MY_PLAY_PROC();	//プレイ画面の処理
 		MY_PLAY_DRAW();	//プレイ画面の描画
-		break;
-	case GAME_STAGE_2:
-		MY_PLAY_PROC_STAGE2();	//プレイ画面の処理
-		MY_PLAY_DRAW_STAGE2();	//プレイ画面の描画
-		break;
-	}
 	return;
 }
 
@@ -810,9 +833,9 @@ VOID MY_PLAY_PROC(VOID)
 	PLAYER_JUMP();		//プレイヤーの動きの処理
 
 	//当たり判定
-	player.coll.left = player.CenterX - mapChip.width / 2;
+	player.coll.left = player.CenterX - mapChip.width / 2 + 5;
 	player.coll.top = player.CenterY - mapChip.height / 2;
-	player.coll.right = player.CenterX + mapChip.width / 2 - 10;
+	player.coll.right = player.CenterX + mapChip.width / 2 - 15;
 	player.coll.bottom = player.CenterY + mapChip.height / 2 - 10;
 
 	//プレイヤーとブロックが当たっていたら直前の位置へ戻る
@@ -964,180 +987,6 @@ VOID MY_PLAY_PROC(VOID)
 
 }
 
-//プレイ画面の処理
-VOID MY_PLAY_PROC_STAGE2(VOID)
-{
-
-	//BGMが流れていないなら
-	if (CheckSoundMem(BGM_PLAY.handle) == 0)
-	{
-		//BGMの音量を下げる
-		ChangeVolumeSoundMem(255 * 30 / 100, BGM_PLAY.handle);	//50%の音量にする
-		PlaySoundMem(BGM_PLAY.handle, DX_PLAYTYPE_LOOP);
-
-	}
-
-	//プレイヤーの当たる以前の位置を設定する
-	player.collBeforePt.x = player.CenterX;
-	player.collBeforePt.y = player.CenterY;
-
-	PLAYER_JUMP();		//プレイヤーの動きの処理
-
-	//当たり判定
-	player.coll.left = player.CenterX - mapChip.width / 2;
-	player.coll.top = player.CenterY - mapChip.height / 2;
-	player.coll.right = player.CenterX + mapChip.width / 2 - 10;
-	player.coll.bottom = player.CenterY + mapChip.height / 2 - 10;
-
-	//プレイヤーとブロックが当たっていたら直前の位置へ戻る
-	if (MY_CHECK_BLOCK_PLAYER_COLL(player.coll) == 1)
-	{
-		player.CenterX = player.collBeforePt.x;
-		player.CenterY = player.collBeforePt.y;
-		player.image.x = player.collBeforePt.x - 30;
-		player.image.y = player.collBeforePt.y - 30;
-		JumpPower = 0;
-		WJumpflag = FALSE;	//二段ジャンプフラグをFALSE
-		WKeyflag = FALSE;	//WキーフラグをFALSE
-	}
-
-	//プレイヤーとスターがあたっていたらマップ上のすべてのスターを消す
-	if (MY_CHECK_STAR_PLAYER_COLL(player.coll) == 1 ||
-		MY_CHECK_STAR_PLAYER_COLL(player.coll) == 2 ||
-		MY_CHECK_STAR_PLAYER_COLL(player.coll) == 3)
-	{
-
-		//スターSEを流す
-		ChangeVolumeSoundMem(255 * 50 / 100, BGM_STAR.handle);	//50%の音量にする
-		PlaySoundMem(BGM_STAR.handle, DX_PLAYTYPE_BACK);
-
-		for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
-		{
-			for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
-			{
-				//スター1に当たっていたらAnswerに1を入れる
-				if (MY_CHECK_STAR_PLAYER_COLL(player.coll) == 1)
-				{
-					Answer = 1;
-				}
-
-				//スター2に当たっていたらAnswerに2を入れる
-				if (MY_CHECK_STAR_PLAYER_COLL(player.coll) == 2)
-				{
-					Answer = 2;
-				}
-
-				//スター3に当たっていたらAnswerに3を入れる
-				if (MY_CHECK_STAR_PLAYER_COLL(player.coll) == 3)
-				{
-					Answer = 3;
-				}
-
-				//スター1を消す
-				if (map2[tate][yoko].kind == h1)
-				{
-					map2[tate][yoko].kind = m1;
-				}
-
-				//スター2を消す
-				if (map2[tate][yoko].kind == h2)
-				{
-					map2[tate][yoko].kind = m2;
-				}
-
-				//スター3を消す
-				if (map2[tate][yoko].kind == h3)
-				{
-					map2[tate][yoko].kind = m3;
-				}
-
-			}
-		}
-	}
-
-	//動くトゲの処理
-	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
-	{
-		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
-		{
-			if (map2[tate][yoko].kind == m)
-			{
-				//Togeの数だけずれたらTogeflagをFALSEにする
-				if (TogeMove == Toge * 60 * Cntm)
-				{
-					Togeflag = FALSE;
-				}
-
-				//Togeの数だけずれたらTogeflagをTRUEにする
-				if (TogeMove == Toge * -60 * Cntm)
-				{
-					Togeflag = TRUE;
-				}
-
-				//TogeflagがTRUEなら右に動く
-				if (Togeflag == TRUE)
-				{
-					map2[tate][yoko].x += TogeSpeed;
-					mapColl[tate][yoko].left += TogeSpeed;
-					mapColl[tate][yoko].right += TogeSpeed;
-					TogeMove += TogeSpeed;
-				}
-
-				//TogeflagがFALSEなら右に動く
-				if (Togeflag == FALSE)
-				{
-					map2[tate][yoko].x -= TogeSpeed;
-					mapColl[tate][yoko].left -= TogeSpeed;
-					mapColl[tate][yoko].right -= TogeSpeed;
-					TogeMove -= TogeSpeed;
-				}
-			}
-		}
-	}
-
-	//プレイヤーとトゲがあたっていたらゲームオーバー画面に遷移
-	if (MY_CHECK_TOGE_PLAYER_COLL(player.coll) == 1 || MY_CHECK_TOGE_PLAYER_COLL(player.coll) == 2)
-	{
-		if (CheckSoundMem(BGM_PLAY.handle) != 0)
-		{
-			StopSoundMem(BGM_PLAY.handle);	//BGMを止める
-		}
-
-		GameEndKind = GAME_END_OVER;	//ゲームオーバー！
-
-		//ゲームのシーンをエンド画面にする
-		GameScene = GAME_SCENE_END;
-
-	}
-
-	//プレイヤーとゴールがあたっていたらゲームクリア画面に遷移
-	if (MY_CHECK_GOAL_PLAYER_COLL(player.coll) == TRUE)
-	{
-
-		if (CheckSoundMem(BGM_PLAY.handle) != 0)
-		{
-			StopSoundMem(BGM_PLAY.handle);	//BGMを止める
-		}
-
-		if (Answer == 1)
-		{
-			GameEndKind = GAME_END_CLEAR;	//ゲームクリア！
-		}
-
-		else
-		{
-			GameEndKind = GAME_END_OVER;
-		}
-
-		//ゲームのシーンをエンド画面にする
-		GameScene = GAME_SCENE_END;
-
-	}
-
-	return;
-
-}
-
 //プレイ画面の描画
 VOID MY_PLAY_DRAW(VOID)
 {
@@ -1161,31 +1010,46 @@ VOID MY_PLAY_DRAW(VOID)
 		}
 	}
 
-	return;
-}
-
-//プレイ画面の描画
-VOID MY_PLAY_DRAW_STAGE2(VOID)
-{
-
-	//プレイ画面背景を描画する
-	DrawGraph(ImagePlay.x, ImagePlay.y, ImagePlay.handle, TRUE);
-
-	//プレイヤーを描画する
-	DrawGraph(player.image.x, player.image.y, player.image.handle, TRUE);
-
-	//マップチップを描画する
+	//当たり判定の描画（デバッグ用）
 	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
 	{
 		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
 		{
-			DrawGraph(
-				map[tate][yoko].x,
-				map[tate][yoko].y,
-				mapChip.handle[map2[tate][yoko].kind],
-				TRUE);
+			//ブロックならば
+			if (mapData[tate][yoko] == b || mapData[tate][yoko] == a)
+			{
+				DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(0, 0, 255), FALSE);
+			}
+
+			//通路ならば
+			if (mapData[tate][yoko] == t)
+			{
+				DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 255, 0), FALSE);
+			}
+
+			//ゴールならば
+			if (mapData[tate][yoko] == g)
+			{
+				DrawBox(goalColl[tate][yoko].left, goalColl[tate][yoko].top, goalColl[tate][yoko].right, goalColl[tate][yoko].bottom, GetColor(0, 255, 0), FALSE);
+			}
+
+			//スターならば
+			if (mapData[tate][yoko] == h1 || mapData[tate][yoko] == h2 || mapData[tate][yoko] == h3)
+			{
+				DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 0, 255), FALSE);
+			}
+
+			//トゲならば
+			if (mapData[tate][yoko] == n || mapData[tate][yoko] == m)
+			{
+				DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 150, 0), FALSE);
+			}
+
 		}
 	}
+
+	//プレーヤー当たり判定の描画（デバッグ用）
+	DrawBox(player.coll.left, player.coll.top, player.coll.right, player.coll.bottom, GetColor(255, 0, 0), FALSE);
 
 	return;
 }
@@ -1243,6 +1107,8 @@ VOID MY_END_PROC(VOID)
 		{
 			StopSoundMem(BGM_OVER.handle);	//BGMを止める
 		}
+
+		GameStage = GAME_STAGE_2;
 
 		//スタート画面にする
 		GameScene = GAME_SCENE_START;
@@ -1403,27 +1269,6 @@ BOOL MY_LOAD_IMAGE(VOID)
 
 	//幅と高さを取得
 	GetGraphSize(mapChip.handle[0], &mapChip.width, &mapChip.height);
-
-	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
-	{
-		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
-		{
-			//マップデータ初期化用に情報をコピー
-			mapDataInit[tate][yoko] = mapData[tate][yoko];
-
-			//マップの種類をコピー
-			map[tate][yoko].kind = mapData[tate][yoko];
-
-			//マップの幅と高さをコピー
-			map[tate][yoko].width = mapChip.width;
-			map[tate][yoko].height = mapChip.height;
-
-			//マップの座標を設定
-			map[tate][yoko].x = yoko * map[tate][yoko].width;
-			map[tate][yoko].y = tate * map[tate][yoko].height;
-
-		}
-	}
 
 	//マップの当たり判定を設定する
 	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
