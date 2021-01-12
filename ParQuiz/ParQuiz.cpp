@@ -3,8 +3,8 @@
 #include <math.h>
 
 //########## マクロ定義 ##########
-#define GAME_WIDTH			960	//画面の横の大きさ
-#define GAME_HEIGHT			540	//画面の縦の大きさ
+#define GAME_WIDTH			1200//画面の横の大きさ
+#define GAME_HEIGHT			660	//画面の縦の大きさ
 #define GAME_COLOR			32	//画面のカラービット
 
 #define GAME_WINDOW_BAR		0					//タイトルバーはデフォルトにする
@@ -45,8 +45,8 @@
 #define MSG_CLOSE_TITLE			TEXT("終了メッセージ")
 #define MSG_CLOSE_CAPTION		TEXT("ゲームを終了しますか？")
 
-#define GAME_MAP_TATE_MAX	9	//マップの縦の数
-#define GAME_MAP_YOKO_MAX	16	//マップの横の数
+#define GAME_MAP_TATE_MAX	11	//マップの縦の数
+#define GAME_MAP_YOKO_MAX	20	//マップの横の数
 #define GAME_MAP_KIND_MAX	2	//マップの種類の数
 
 #define IMG_SOUGEN				TEXT(".\\IMAGE\\sougen.png")			//タイトル画面の背景
@@ -111,6 +111,7 @@ enum GAME_STAGE {
 	GAME_STAGE_1,
 	GAME_STAGE_2,
 	GAME_STAGE_3,
+	GAME_STAGE_4,
 };
 
 enum CHARA_SPEED {
@@ -249,6 +250,11 @@ int Togeflag = TRUE;			//動くトゲの切り返しのフラグ
 int TogeMove = 0;				//トゲが動いた距離を測る変数
 int Cntm = 0;					//動くトゲのカウンター
 
+int Map1Answer = 2;
+int Map2Answer = 1;
+int Map3Answer = 2;
+int Map4Answer = 3;
+
 IMAGE ImageTitle;		//タイトル画面の背景画像
 IMAGE ImagePlay;		//プレイ画面の背景画像
 IMAGE ImageTitleROGO;	//ロゴの画像
@@ -270,30 +276,35 @@ MUSIC BGM_JUMP2;		//ニ段ジャンプSE
 MUSIC BGM_STAR;			//スターSE
 
 GAME_MAP_KIND mapData[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
-	//  0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5
-		b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,	// 0
-		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 1
-		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 2
-		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 3
-		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 4
-		b,t,t,t,h1,t,t,h2,t,t,h3,t,t,t,t,b,	// 5
-		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 6
-		b,s,t,t,t,t,t,t,t,t,t,t,t,t,g,b,	// 7
-		b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,	// 8
+	//  0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9
+		b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,	// 0
+		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 1
+		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 2
+		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 3
+		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 4
+		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 5
+		b,t,t,t,t,h2,t,t,t,h1,t,t,t,t,h3,t,t,t,t,b,	// 6
+		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 7
+		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 8
+		b,s,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,g,b,	// 9
+		b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,	// 0
 };	//ゲームのマップ
 
 GAME_MAP_KIND mapData2[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
-	//  0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5
-		b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,	// 0
-		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 1
-		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 2
-		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 3
-		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 4
-		b,t,t,t,h1,t,t,t,t,t,t,t,t,t,t,b,	// 5
-		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 6
-		b,s,t,t,t,t,t,t,t,t,t,t,t,t,g,b,	// 7
-		b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,	// 8
+	//  0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9
+		b,t,t,t,t,t,n,t,t,t,t,t,t,n,n,n,t,t,t,n,	// 0
+		b,t,t,t,t,t,t,t,t,t,t,t,t,n,n,n,t,t,g,n,	// 1
+		b,b,t,t,t,t,b,b,n,b,t,t,t,n,n,n,t,t,b,n,	// 2
+		b,t,t,t,t,t,t,t,t,t,n,t,t,n,n,n,t,t,t,n,	// 3
+		b,t,t,t,t,t,h3,t,t,t,n,t,t,n,n,n,b,t,t,n,	// 4
+		b,b,h2,t,t,t,t,t,t,t,n,t,t,n,n,n,t,t,t,n,	// 5
+		b,t,t,t,t,t,t,t,g,t,n,t,t,n,n,n,t,t,b,n,	// 6
+		b,t,t,t,t,t,t,t,t,t,n,t,t,t,t,t,t,t,t,n,	// 7
+		b,t,t,b,t,t,t,t,t,b,t,t,t,t,t,t,t,b,t,n,	// 8
+		b,s,t,b,t,t,h1,t,t,b,t,t,t,t,t,t,t,t,t,n,	// 9
+		b,b,b,b,n,n,n,n,n,b,b,n,n,n,n,b,n,n,n,n,	// 10
 };	//ゲームのマップ
+
 
 //ゲームマップの初期化
 GAME_MAP_KIND mapDataInit[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX];
@@ -968,14 +979,43 @@ VOID MY_PLAY_PROC(VOID)
 			StopSoundMem(BGM_PLAY.handle);	//BGMを止める
 		}
 
-		if (Answer == 1)
+		switch (GameStage)
 		{
-			GameEndKind = GAME_END_CLEAR;	//ゲームクリア！
-		}
+		case GAME_STAGE_1:
+			if (Map1Answer == Answer)
+			{
+				GameEndKind = GAME_END_CLEAR;
+			}
+			else
+				GameEndKind = GAME_END_OVER;
+			break;
 
-		else
-		{
-			GameEndKind = GAME_END_OVER;
+		case GAME_STAGE_2:
+			if (Map2Answer == Answer)
+			{
+				GameEndKind = GAME_END_CLEAR;
+			}
+			else
+				GameEndKind = GAME_END_OVER;
+			break;
+
+		case GAME_STAGE_3:
+			if (Map3Answer == Answer)
+			{
+				GameEndKind = GAME_END_CLEAR;
+			}
+			else
+				GameEndKind = GAME_END_OVER;
+			break;
+
+		case GAME_STAGE_4:
+			if (Map4Answer == Answer)
+			{
+				GameEndKind = GAME_END_CLEAR;
+			}
+			else
+				GameEndKind = GAME_END_OVER;
+			break;
 		}
 
 		//ゲームのシーンをエンド画面にする
