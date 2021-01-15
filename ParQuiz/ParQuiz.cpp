@@ -298,7 +298,7 @@ GAME_MAP_KIND mapData2[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
 		b,t,t,t,t,t,t,t,t,t,n,t,t,n,n,n,t,t,t,n,	// 3
 		b,t,t,t,t,t,h3,t,t,t,n,t,t,n,n,n,b,t,t,n,	// 4
 		b,b,h2,t,t,t,t,t,t,t,n,t,t,n,n,n,t,t,t,n,	// 5
-		b,t,t,t,t,t,t,t,g,t,n,t,t,n,n,n,t,t,b,n,	// 6
+		b,t,t,t,t,t,t,t,t,t,n,t,t,n,n,n,t,t,b,n,	// 6
 		b,t,t,t,t,t,t,t,t,t,n,t,t,t,t,t,t,t,t,n,	// 7
 		b,t,t,b,t,t,t,t,t,b,t,t,t,t,t,t,t,b,t,n,	// 8
 		b,s,t,b,t,t,h1,t,t,b,t,t,t,t,t,t,t,t,t,n,	// 9
@@ -432,19 +432,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	{
 		//エラーメッセージ表示
 		MessageBox(GetMainWindowHandle(), START_ERR_CAPTION, START_ERR_TITLE, MB_OK);	return -1;
-	}
-
-	//m(動くトゲ)をカウントする
-	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
-	{
-		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
-		{
-
-			if (map[tate][yoko].kind == m)
-			{
-				Cntm++;
-			}
-		}
 	}
 
 	//無限ループ
@@ -726,6 +713,7 @@ VOID MY_START_DRAW(VOID)
 //プレイ画面初期化
 VOID MY_PLAY_INIT(VOID)
 {
+	Cntm = 0;
 
 	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
 	{
@@ -757,6 +745,19 @@ VOID MY_PLAY_INIT(VOID)
 			map[tate][yoko].x = yoko * map[tate][yoko].width;
 			map[tate][yoko].y = tate * map[tate][yoko].height;
 
+		}
+	}
+
+	//m(動くトゲ)をカウントする
+	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
+	{
+		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
+		{
+
+			if (map[tate][yoko].kind == m)
+			{
+				Cntm++;
+			}
 		}
 	}
 
@@ -792,19 +793,18 @@ VOID MY_PLAY_INIT(VOID)
 
 				if (TogeMove < 0)
 				{
-					map[tate][yoko].x -= TogeMove / Cntm;
+					map[tate][yoko].x -= TogeMove/30;
 					mapColl[tate][yoko].left -= TogeMove / Cntm;
 					mapColl[tate][yoko].right -= TogeMove / Cntm;
 				}
 
 				if (TogeMove > 0)
 				{
-					map[tate][yoko].x -= TogeMove / Cntm;
+					map[tate][yoko].x -= TogeMove/30;
 					mapColl[tate][yoko].left -= TogeMove / Cntm;
 					mapColl[tate][yoko].right -= TogeMove / Cntm;
 				}
 			}
-
 		}
 	}
 
@@ -1050,46 +1050,46 @@ VOID MY_PLAY_DRAW(VOID)
 		}
 	}
 
-	//当たり判定の描画（デバッグ用）
-	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
-	{
-		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
-		{
-			//ブロックならば
-			if (mapData[tate][yoko] == b || mapData[tate][yoko] == a)
-			{
-				DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(0, 0, 255), FALSE);
-			}
+	////当たり判定の描画（デバッグ用）
+	//for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
+	//{
+	//	for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
+	//	{
+	//		//ブロックならば
+	//		if (mapData[tate][yoko] == b || mapData[tate][yoko] == a)
+	//		{
+	//			DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(0, 0, 255), FALSE);
+	//		}
 
-			//通路ならば
-			if (mapData[tate][yoko] == t)
-			{
-				DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 255, 0), FALSE);
-			}
+	//		//通路ならば
+	//		if (mapData[tate][yoko] == t)
+	//		{
+	//			DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 255, 0), FALSE);
+	//		}
 
-			//ゴールならば
-			if (mapData[tate][yoko] == g)
-			{
-				DrawBox(goalColl[tate][yoko].left, goalColl[tate][yoko].top, goalColl[tate][yoko].right, goalColl[tate][yoko].bottom, GetColor(0, 255, 0), FALSE);
-			}
+	//		//ゴールならば
+	//		if (mapData[tate][yoko] == g)
+	//		{
+	//			DrawBox(goalColl[tate][yoko].left, goalColl[tate][yoko].top, goalColl[tate][yoko].right, goalColl[tate][yoko].bottom, GetColor(0, 255, 0), FALSE);
+	//		}
 
-			//スターならば
-			if (mapData[tate][yoko] == h1 || mapData[tate][yoko] == h2 || mapData[tate][yoko] == h3)
-			{
-				DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 0, 255), FALSE);
-			}
+	//		//スターならば
+	//		if (mapData[tate][yoko] == h1 || mapData[tate][yoko] == h2 || mapData[tate][yoko] == h3)
+	//		{
+	//			DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 0, 255), FALSE);
+	//		}
 
-			//トゲならば
-			if (mapData[tate][yoko] == n || mapData[tate][yoko] == m)
-			{
-				DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 150, 0), FALSE);
-			}
+	//		//トゲならば
+	//		if (mapData[tate][yoko] == n || mapData[tate][yoko] == m)
+	//		{
+	//			DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 150, 0), FALSE);
+	//		}
 
-		}
-	}
+	//	}
+	//}
 
-	//プレーヤー当たり判定の描画（デバッグ用）
-	DrawBox(player.coll.left, player.coll.top, player.coll.right, player.coll.bottom, GetColor(255, 0, 0), FALSE);
+	////プレーヤー当たり判定の描画（デバッグ用）
+	//DrawBox(player.coll.left, player.coll.top, player.coll.right, player.coll.bottom, GetColor(255, 0, 0), FALSE);
 
 	return;
 }
@@ -1119,6 +1119,9 @@ VOID MY_END_PROC(VOID)
 			ChangeVolumeSoundMem(255 * 50 / 100, BGM_CLEAR.handle);	//50%の音量にする
 			PlaySoundMem(BGM_CLEAR.handle, DX_PLAYTYPE_LOOP);
 		}
+
+		GameStage = GAME_STAGE_2;
+
 		break;
 
 	case GAME_END_OVER:
@@ -1136,7 +1139,7 @@ VOID MY_END_PROC(VOID)
 	}
 
 	//エンターキーを押したら、スタートシーンへ移動する
-	if (MY_KEY_DOWN(KEY_INPUT_RETURN) == TRUE)
+	if (MY_KEY_DOWN(KEY_INPUT_SPACE) == TRUE)
 	{
 		if (CheckSoundMem(BGM_CLEAR.handle) != 0)
 		{
@@ -1148,7 +1151,25 @@ VOID MY_END_PROC(VOID)
 			StopSoundMem(BGM_OVER.handle);	//BGMを止める
 		}
 
-		GameStage = GAME_STAGE_2;
+		MY_PLAY_INIT();
+
+		//スタート画面にする
+		GameScene = GAME_SCENE_PLAY;
+
+	}
+
+	//エンターキーを押したら、スタートシーンへ移動する
+	if (MY_KEY_DOWN(KEY_INPUT_RETURN) == TRUE)
+	{
+		if (CheckSoundMem(BGM_CLEAR.handle) != 0)
+		{
+			StopSoundMem(BGM_CLEAR.handle);	//BGMを止める
+		}
+
+		if (CheckSoundMem(BGM_OVER.handle) != 0)
+		{
+			StopSoundMem(BGM_OVER.handle);	//BGMを止める
+		}
 
 		//スタート画面にする
 		GameScene = GAME_SCENE_START;
