@@ -249,6 +249,7 @@ int TogeSpeed = TOGE_SPEED;		//トゲのスピード
 int Togeflag = TRUE;			//動くトゲの切り返しのフラグ	
 int TogeMove = 0;				//トゲが動いた距離を測る変数
 int Cntm = 0;					//動くトゲのカウンター
+int Clearflag = TRUE;			//クリアしたかどうかのフラグ
 
 int Map1Answer = 2;
 int Map2Answer = 1;
@@ -279,13 +280,13 @@ GAME_MAP_KIND mapData[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
 	//  0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9
 		b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,	// 0
 		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 1
-		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 2
+		b,t,t,t,t,m,t,t,t,t,t,t,t,t,t,m,t,t,t,b,	// 2
 		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 3
 		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 4
 		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 5
 		b,t,t,t,t,h2,t,t,t,h1,t,t,t,t,h3,t,t,t,t,b,	// 6
 		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 7
-		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 8
+		b,t,t,t,t,t,t,t,m,t,t,t,t,t,t,t,t,t,t,b,	// 8
 		b,s,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,g,b,	// 9
 		b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,	// 0
 };	//ゲームのマップ
@@ -293,14 +294,14 @@ GAME_MAP_KIND mapData[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
 GAME_MAP_KIND mapData2[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
 	//  0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9
 		b,t,t,t,t,t,n,t,t,t,t,t,t,n,n,n,t,t,t,n,	// 0
-		b,t,t,t,t,t,t,t,t,t,t,t,t,n,n,n,t,t,g,n,	// 1
-		b,b,t,t,t,t,b,b,n,b,t,t,t,n,n,n,t,t,b,n,	// 2
-		b,t,t,t,t,t,t,t,t,t,n,t,t,n,n,n,t,t,t,n,	// 3
+		b,t,t,m,t,t,t,t,t,t,t,t,m,n,n,n,t,t,g,n,	// 1
+		b,b,t,t,t,t,b,b,n,b,t,m,t,n,n,n,t,t,b,n,	// 2
+		b,t,t,t,t,t,t,t,t,t,n,t,m,n,n,n,t,t,t,n,	// 3
 		b,t,t,t,t,t,h3,t,t,t,n,t,t,n,n,n,b,t,t,n,	// 4
 		b,b,h2,t,t,t,t,t,t,t,n,t,t,n,n,n,t,t,t,n,	// 5
 		b,t,t,t,t,t,t,t,t,t,n,t,t,n,n,n,t,t,b,n,	// 6
-		b,t,t,t,t,t,t,t,t,t,n,t,t,t,t,t,t,t,t,n,	// 7
-		b,t,t,b,t,t,t,t,t,b,t,t,t,t,t,t,t,b,t,n,	// 8
+		b,t,t,t,t,t,t,t,m,t,n,t,t,t,t,t,t,t,t,n,	// 7
+		b,t,t,b,t,t,t,t,t,b,t,t,t,t,m,t,t,b,t,n,	// 8
 		b,s,t,b,t,t,h1,t,t,b,t,t,t,t,t,t,t,t,t,n,	// 9
 		b,b,b,b,n,n,n,n,n,b,b,n,n,n,n,b,n,n,n,n,	// 10
 };	//ゲームのマップ
@@ -352,6 +353,7 @@ VOID MY_START_PROC(VOID);			//スタート画面の処理
 VOID MY_START_DRAW(VOID);			//スタート画面の描画
 
 VOID MY_PLAY_INIT(VOID);			//プレイ画面初期化
+VOID MY_PLAY_INIT_OVER(VOID);
 VOID MY_PLAY(VOID);					//プレイ画面
 VOID MY_PLAY_PROC(VOID);			//プレイ画面の処理
 VOID MY_PLAY_DRAW(VOID);			//プレイ画面の描画
@@ -674,7 +676,20 @@ VOID MY_START_PROC(VOID)
 	//スペースキーを押したら、プレイシーンへ移動する
 	if (MY_KEY_DOWN(KEY_INPUT_SPACE) == TRUE)
 	{
-		MY_PLAY_INIT();	//ゲーム初期化
+		//クリアフラグ
+		switch (Clearflag)
+		{
+
+		//TRUEならゲーム画面を塗り替える
+		case TRUE:
+			MY_PLAY_INIT();	//ゲーム初期化
+			break;
+
+		//FALSEならトゲの位置を修正
+		case FALSE:
+			MY_PLAY_INIT_OVER();
+			break;
+		}
 
 		if (CheckSoundMem(BGM_START.handle) != 0)
 		{
@@ -713,6 +728,7 @@ VOID MY_START_DRAW(VOID)
 //プレイ画面初期化
 VOID MY_PLAY_INIT(VOID)
 {
+	//動くトゲカウンターを初期化(しないと多分どんどん増えてく)
 	Cntm = 0;
 
 	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
@@ -745,22 +761,47 @@ VOID MY_PLAY_INIT(VOID)
 			map[tate][yoko].x = yoko * map[tate][yoko].width;
 			map[tate][yoko].y = tate * map[tate][yoko].height;
 
-		}
-	}
 
-	//m(動くトゲ)をカウントする
-	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
-	{
-		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
-		{
-
+			//そのマップにある動くトゲをカウント
 			if (map[tate][yoko].kind == m)
 			{
 				Cntm++;
 			}
+
+			//消えたスターを元に戻す
+			if (map[tate][yoko].kind == m1)
+			{
+				map[tate][yoko].kind = h1;
+			}
+			if (map[tate][yoko].kind == m2)
+			{
+				map[tate][yoko].kind = h2;
+			}
+
+			if (map[tate][yoko].kind == m3)
+			{
+				map[tate][yoko].kind = h3;
+			}
+
 		}
 	}
 
+	//プレイヤーをスタート位置に描画
+	player.image.x = startPt.x - 30;
+	player.CenterX = startPt.x;
+	player.image.y = startPt.y - 40;
+	player.CenterY = startPt.y - 10;
+
+	Answer = 0;			//持っている回答を消す
+	Togeflag = TRUE;	//トゲを右に動くようにする
+	TogeMove = 0;		//TogeMoveを初期化
+
+	return;
+}
+
+//ゲームオーバー版プレイ画面初期化(トゲの位置を修正)
+VOID MY_PLAY_INIT_OVER(VOID)
+{
 	//プレイヤーをスタート位置に描画
 	player.image.x = startPt.x - 30;
 	player.CenterX = startPt.x;
@@ -772,7 +813,7 @@ VOID MY_PLAY_INIT(VOID)
 		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
 		{
 
-			//スターを元に戻す
+			//消えたスターを元に戻す
 			if (map[tate][yoko].kind == m1)
 			{
 				map[tate][yoko].kind = h1;
@@ -793,14 +834,14 @@ VOID MY_PLAY_INIT(VOID)
 
 				if (TogeMove < 0)
 				{
-					map[tate][yoko].x -= TogeMove/30;
+					map[tate][yoko].x -= TogeMove / Cntm;
 					mapColl[tate][yoko].left -= TogeMove / Cntm;
 					mapColl[tate][yoko].right -= TogeMove / Cntm;
 				}
 
 				if (TogeMove > 0)
 				{
-					map[tate][yoko].x -= TogeMove/30;
+					map[tate][yoko].x -= TogeMove / Cntm;
 					mapColl[tate][yoko].left -= TogeMove / Cntm;
 					mapColl[tate][yoko].right -= TogeMove / Cntm;
 				}
@@ -818,7 +859,6 @@ VOID MY_PLAY_INIT(VOID)
 //プレイ画面
 VOID MY_PLAY(VOID)
 {
-
 		MY_PLAY_PROC();	//プレイ画面の処理
 		MY_PLAY_DRAW();	//プレイ画面の描画
 	return;
@@ -1050,46 +1090,46 @@ VOID MY_PLAY_DRAW(VOID)
 		}
 	}
 
-	////当たり判定の描画（デバッグ用）
-	//for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
-	//{
-	//	for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
-	//	{
-	//		//ブロックならば
-	//		if (mapData[tate][yoko] == b || mapData[tate][yoko] == a)
-	//		{
-	//			DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(0, 0, 255), FALSE);
-	//		}
+	//当たり判定の描画（デバッグ用）
+	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
+	{
+		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
+		{
+			//ブロックならば
+			if (map[tate][yoko].kind == b || map[tate][yoko].kind == a)
+			{
+				DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(0, 0, 255), FALSE);
+			}
 
-	//		//通路ならば
-	//		if (mapData[tate][yoko] == t)
-	//		{
-	//			DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 255, 0), FALSE);
-	//		}
+			//通路ならば
+			if (map[tate][yoko].kind == t)
+			{
+				DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 255, 0), FALSE);
+			}
 
-	//		//ゴールならば
-	//		if (mapData[tate][yoko] == g)
-	//		{
-	//			DrawBox(goalColl[tate][yoko].left, goalColl[tate][yoko].top, goalColl[tate][yoko].right, goalColl[tate][yoko].bottom, GetColor(0, 255, 0), FALSE);
-	//		}
+			//ゴールならば
+			if (map[tate][yoko].kind == g)
+			{
+				DrawBox(goalColl[tate][yoko].left, goalColl[tate][yoko].top, goalColl[tate][yoko].right, goalColl[tate][yoko].bottom, GetColor(0, 255, 0), FALSE);
+			}
 
-	//		//スターならば
-	//		if (mapData[tate][yoko] == h1 || mapData[tate][yoko] == h2 || mapData[tate][yoko] == h3)
-	//		{
-	//			DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 0, 255), FALSE);
-	//		}
+			//スターならば
+			if (map[tate][yoko].kind == h1 || map[tate][yoko].kind == h2 || map[tate][yoko].kind == h3)
+			{
+				DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 0, 255), FALSE);
+			}
 
-	//		//トゲならば
-	//		if (mapData[tate][yoko] == n || mapData[tate][yoko] == m)
-	//		{
-	//			DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 150, 0), FALSE);
-	//		}
+			//トゲならば
+			if (map[tate][yoko].kind == n || map[tate][yoko].kind == m)
+			{
+				DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 150, 0), FALSE);
+			}
 
-	//	}
-	//}
+		}
+	}
 
-	////プレーヤー当たり判定の描画（デバッグ用）
-	//DrawBox(player.coll.left, player.coll.top, player.coll.right, player.coll.bottom, GetColor(255, 0, 0), FALSE);
+	//プレーヤー当たり判定の描画（デバッグ用）
+	DrawBox(player.coll.left, player.coll.top, player.coll.right, player.coll.bottom, GetColor(255, 0, 0), FALSE);
 
 	return;
 }
@@ -1111,6 +1151,8 @@ VOID MY_END_PROC(VOID)
 	case GAME_END_CLEAR:
 		//ゲームクリアのとき
 
+		Clearflag = TRUE;
+
 		//BGMが流れていないなら
 		if (CheckSoundMem(BGM_CLEAR.handle) == 0)
 		{
@@ -1127,6 +1169,8 @@ VOID MY_END_PROC(VOID)
 	case GAME_END_OVER:
 		//ゲームオーバーのとき
 
+		Clearflag = FALSE;
+
 		//BGMが流れていないなら
 		if (CheckSoundMem(BGM_OVER.handle) == 0)
 		{
@@ -1135,27 +1179,8 @@ VOID MY_END_PROC(VOID)
 			ChangeVolumeSoundMem(255 * 50 / 100, BGM_OVER.handle);	//50%の音量にする
 			PlaySoundMem(BGM_OVER.handle, DX_PLAYTYPE_LOOP);
 		}
+
 		break;
-	}
-
-	//エンターキーを押したら、スタートシーンへ移動する
-	if (MY_KEY_DOWN(KEY_INPUT_SPACE) == TRUE)
-	{
-		if (CheckSoundMem(BGM_CLEAR.handle) != 0)
-		{
-			StopSoundMem(BGM_CLEAR.handle);	//BGMを止める
-		}
-
-		if (CheckSoundMem(BGM_OVER.handle) != 0)
-		{
-			StopSoundMem(BGM_OVER.handle);	//BGMを止める
-		}
-
-		MY_PLAY_INIT();
-
-		//スタート画面にする
-		GameScene = GAME_SCENE_PLAY;
-
 	}
 
 	//エンターキーを押したら、スタートシーンへ移動する
@@ -1176,6 +1201,35 @@ VOID MY_END_PROC(VOID)
 
 	}
 
+	//スペースキーを押したら、プレイシーンへ移動する
+	if (MY_KEY_DOWN(KEY_INPUT_SPACE) == TRUE)
+	{
+		if (CheckSoundMem(BGM_CLEAR.handle) != 0)
+		{
+			StopSoundMem(BGM_CLEAR.handle);	//BGMを止める
+		}
+
+		if (CheckSoundMem(BGM_OVER.handle) != 0)
+		{
+			StopSoundMem(BGM_OVER.handle);	//BGMを止める
+		}
+
+		switch (Clearflag)
+		{
+		case TRUE:
+			MY_PLAY_INIT();	//ゲーム初期化
+			break;
+
+		case FALSE:
+			MY_PLAY_INIT_OVER();
+			break;
+		}
+
+		//プレイ画面にする
+		GameScene = GAME_SCENE_PLAY;
+
+	}
+
 	return;
 }
 
@@ -1188,16 +1242,16 @@ VOID MY_END_DRAW(VOID)
 	switch (GameEndKind)
 	{
 	case GAME_END_CLEAR:
-		//コンプリートのとき
+		//ゲームクリアのとき
 
-			//コンプリートの描画
+			//ゲームクリアの描画
 		DrawGraph(ImageTitleCLEAR.x, ImageTitleCLEAR.y, ImageTitleCLEAR.handle, TRUE);
 		break;
 
 	case GAME_END_OVER:
-		//フォールトのとき
+		//ゲームオーバーのとき
 
-			//フォールトの描画
+			//ゲームオーバーの描画
 		DrawGraph(ImageTitleOVER.x, ImageTitleOVER.y, ImageTitleOVER.handle, TRUE);
 		break;
 	}
