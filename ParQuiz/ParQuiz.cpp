@@ -10,9 +10,7 @@
 #define GAME_WINDOW_BAR		0					//タイトルバーはデフォルトにする
 #define GAME_WINDOW_NAME	"GAME TITLE"		//ウィンドウのタイトル
 
-#define GAME_PI							3.1415	//π
 #define GAME_FPS						60	//FPSの値
-#define GAME_HANKEI							30	//円の半径
 
 //マウスのボタン
 #define MOUSE_BUTTON_CODE	129	//0x0000～0x0080まで
@@ -24,7 +22,7 @@
 #define PATH_MAX			255	//255文字まで
 #define NAME_MAX			255	//255文字まで
 
-#define TOGE_MOVE           2	//トゲが動く距離
+#define TOGE_MOVE           2	//トゲが動く距離(1なら左右に1マスずつ。真ん中も合わせて計3マス動く)
 #define TOGE_SPEED          2	//トゲのスピード
 
 //フォント
@@ -58,7 +56,7 @@
 #define IMG_SPACE				TEXT(".\\IMAGE\\pressofspace.png")		//PRESS OF SPACEKEYの画像
 #define IMG_ENTER				TEXT(".\\IMAGE\\pressofenter.png")		//PRESS OF ENTERの画像
 
-#define GAME_MAP_PATH			TEXT(".\\IMAGE\\mapchip1ver5.png")		//マップの画像
+#define GAME_MAP_PATH			TEXT(".\\IMAGE\\mapchip1ver5.png")		//マップチップの画像
 
 #define MAP_DIV_WIDTH		60	//画像を分割する幅サイズ
 #define MAP_DIV_HEIGHT		60	//画像を分割する高さサイズ
@@ -85,9 +83,9 @@
 
 enum GAME_MAP_KIND
 {
-	m1 = -1,	//未定
-	m2 = -2,	//未定
-	m3 = -3,	//未定
+	m1 = -1,	//星1を取った時m1に変換
+	m2 = -2,	//星2を取った時m2に変換
+	m3 = -3,	//星3を取った時m3に変換
 	b = 1,	//ブロック
 	g = 2,	//ゴール
 	d = 3,	//トゲ2(デンジャー)
@@ -112,7 +110,7 @@ enum GAME_STAGE {
 	GAME_STAGE_2,
 	GAME_STAGE_3,
 	GAME_STAGE_4,
-};
+};	//ゲームのステージ
 
 enum CHARA_SPEED {
 	CHARA_SPEED_LOW = 1,
@@ -146,7 +144,6 @@ typedef struct STRUCT_MOUSE
 
 }MOUSE;
 
-//フォント構造体
 typedef struct STRUCT_FONT
 {
 	char path[PATH_MAX];		//パス
@@ -156,7 +153,7 @@ typedef struct STRUCT_FONT
 	int bold;					//太さ
 	int type;					//タイプ
 
-}FONT;
+}FONT; //フォント構造体
 
 typedef struct STRUCT_IMAGE
 {
@@ -185,8 +182,6 @@ typedef struct STRUCT_CHARA
 	int CenterX;				//中心X
 	int CenterY;				//中心Y
 
-	double radian;				//ラジアン(角度)
-
 	RECT coll;					//当たり判定
 	iPOINT collBeforePt;		//当たる前の座標
 
@@ -200,7 +195,7 @@ typedef struct STRUCT_MAP_IMAGE
 	int width;							//幅
 	int height;							//高さ
 
-}MAPCHIP;	//MAP_IMAGE構造体
+}MAPCHIP;	//MAPCHIP構造体
 
 typedef struct STRUCT_MAP
 {
@@ -210,13 +205,6 @@ typedef struct STRUCT_MAP
 	int width;					//幅
 	int height;					//高さ
 }MAP;	//MAP構造体
-
-struct MY_CIRCLE
-{
-	int x;		//横の位置
-	int y;		//縦の位置
-	int radius;	//半径
-};	//円の構造体
 
 //########## グローバル変数 ##########
 //FPS関連
@@ -233,48 +221,50 @@ char OldAllKeyState[KEY_CODE_KIND] = { '\0' };	//すべてのキーの状態(直前)が入る
 MOUSE mouse;
 
 //ゲーム関連
-int GameScene;			//ゲームシーンを管理
+int GameScene;					//ゲームシーンを管理
 
-int GameStage;			//ゲームのステージを管理
+int GameStage;					//ゲームのステージを管理
 
-int GameEndKind;		//ゲームの終了状態
+int GameEndKind;				//ゲームの終了状態
 
 int JumpPower = 0;				//ジャンプスピード初期化
-int Jumpflag = TRUE;			//ジャンプフラグ
-int WJumpflag = FALSE;			//２段ジャンプフラグ
-int WKeyflag = FALSE;			//Wキーを離しているかどうかのフラグ
+int Jumpflag = TRUE;			//ジャンプフラグ(TRUEならジャンプできる)
+int WJumpflag = FALSE;			//２段ジャンプフラグ(TRUEなら二段ジャンプできる)
+int WKeyflag = FALSE;			//Wキーを離しているかどうかのフラグ(二段ジャンプのときに使う)
 int Answer = 0;					//取ったスターを入れる変数
 int Toge = TOGE_MOVE;			//トゲが動く距離
 int TogeSpeed = TOGE_SPEED;		//トゲのスピード
-int Togeflag = TRUE;			//動くトゲの切り返しのフラグ	
+int Togeflag = TRUE;			//動くトゲの切り返しのフラグ(TRUEのときは右に動く)	
 int TogeMove = 0;				//トゲが動いた距離を測る変数
-int Cntm = 0;					//動くトゲのカウンター
-int Clearflag = TRUE;			//クリアしたかどうかのフラグ
+int Cntm = 0;					//動くトゲのカウンター(トゲが増えるほど増えていく)
+int Clearflag = TRUE;			//クリアしたかどうかのフラグ(プレイ画面の初期化に使用)
 
-int Map1Answer = 2;
-int Map2Answer = 1;
-int Map3Answer = 2;
-int Map4Answer = 3;
+int Map1Answer = 2;				//マップ1の答え = 2
+int Map2Answer = 1;				//マップ2の答え = 1
+int Map3Answer = 2;				//マップ3の答え = 2
+int Map4Answer = 3;				//マップ4の答え = 3
 
-IMAGE ImageTitle;		//タイトル画面の背景画像
-IMAGE ImagePlay;		//プレイ画面の背景画像
-IMAGE ImageTitleROGO;	//ロゴの画像
-IMAGE ImageTitleCLEAR;	//クリアの画像
-IMAGE ImageTitleOVER;	//ゲームオーバーの画像
 
-IMAGE ImageSpace;		//スペースキーを押してください
-IMAGE ImageEnter;		//エンターキーを押してください
+IMAGE ImageTitle;				//タイトル画面の背景画像
+IMAGE ImagePlay;				//プレイ画面の背景画像
+IMAGE ImageTitleROGO;			//ロゴの画像
+IMAGE ImageTitleCLEAR;			//クリアの画像
+IMAGE ImageTitleOVER;			//ゲームオーバーの画像
 
-CHARA player;			//ゲームのキャラ
+IMAGE ImageSpace;				//スペースキーを押してください
+IMAGE ImageEnter;				//エンターキーを押してください
 
-MUSIC BGM_START;		//タイトル画面BGM
-MUSIC BGM_PLAY;			//プレイ画面BGM
-MUSIC BGM_CLEAR;		//クリア画面BGM
-MUSIC BGM_OVER;			//ゲームオーバー画面BGM
-MUSIC BGM_KETTEI;		//決定SE
-MUSIC BGM_JUMP1;		//ジャンプSE
-MUSIC BGM_JUMP2;		//ニ段ジャンプSE
-MUSIC BGM_STAR;			//スターSE
+CHARA player;					//ゲームのキャラ
+
+MUSIC BGM_START;				//タイトル画面BGM
+MUSIC BGM_PLAY;					//プレイ画面BGM
+MUSIC BGM_CLEAR;				//クリア画面BGM
+MUSIC BGM_OVER;					//ゲームオーバー画面BGM
+MUSIC BGM_KETTEI;				//決定SE
+MUSIC BGM_JUMP1;				//ジャンプSE
+MUSIC BGM_JUMP2;				//ニ段ジャンプSE
+MUSIC BGM_STAR;					//スター取った時のSE
+
 
 GAME_MAP_KIND mapData[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
 	//  0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9
@@ -289,28 +279,28 @@ GAME_MAP_KIND mapData[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
 		b,t,t,t,t,t,t,t,m,t,t,t,t,t,t,t,t,t,t,b,	// 8
 		b,s,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,g,b,	// 9
 		b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,	// 0
-};	//ゲームのマップ
+};	//ステージ1のマップ
 
 GAME_MAP_KIND mapData2[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
 	//  0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9
 		b,t,t,t,t,t,n,t,t,t,t,t,t,n,n,n,t,t,t,n,	// 0
-		b,t,t,m,t,t,t,t,t,t,t,t,m,n,n,n,t,t,g,n,	// 1
-		b,b,t,t,t,t,b,b,n,b,t,m,t,n,n,n,t,t,b,n,	// 2
-		b,t,t,t,t,t,t,t,t,t,n,t,m,n,n,n,t,t,t,n,	// 3
+		b,t,t,t,t,t,t,t,t,t,t,t,t,n,n,n,t,t,g,n,	// 1
+		b,b,t,t,t,t,b,b,n,b,t,t,t,n,n,n,t,t,b,n,	// 2
+		b,t,t,t,t,t,t,t,t,t,n,t,t,n,n,n,t,t,t,n,	// 3
 		b,t,t,t,t,t,h3,t,t,t,n,t,t,n,n,n,b,t,t,n,	// 4
 		b,b,h2,t,t,t,t,t,t,t,n,t,t,n,n,n,t,t,t,n,	// 5
 		b,t,t,t,t,t,t,t,t,t,n,t,t,n,n,n,t,t,b,n,	// 6
-		b,t,t,t,t,t,t,t,m,t,n,t,t,t,t,t,t,t,t,n,	// 7
-		b,t,t,b,t,t,t,t,t,b,t,t,t,t,m,t,t,b,t,n,	// 8
+		b,t,t,t,t,t,t,t,t,t,n,t,t,t,t,t,t,t,t,n,	// 7
+		b,t,t,b,t,t,t,t,t,b,t,t,t,t,t,t,t,b,t,n,	// 8
 		b,s,t,b,t,t,h1,t,t,b,t,t,t,t,t,t,t,t,t,n,	// 9
 		b,b,b,b,n,n,n,n,n,b,b,n,n,n,n,b,n,n,n,n,	// 10
-};	//ゲームのマップ
+};	//ステージ２のマップ
 
 
 //ゲームマップの初期化
 GAME_MAP_KIND mapDataInit[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX];
 
-//ゲームマップの初期化
+//ゲームマップ2の初期化
 GAME_MAP_KIND mapData2Init[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX];
 
 //マップチップの画像を管理
@@ -319,19 +309,17 @@ MAPCHIP mapChip;
 //マップの場所を管理
 MAP map[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX];
 
-//マップの場所を管理
+//マップ2の場所を管理
 MAP map2[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX];
 
 //スタートの位置
 iPOINT startPt{ -1,-1 };
 
-//マップの当たり判定
+//マップの当たり判定(基本)
 RECT mapColl[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX];
 
-//ゴールの当たり判定
+//ゴールの当たり判定(分けたのは横幅が少し狭いため)
 RECT goalColl[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX];
-
-MY_CIRCLE en;
 
 //########## プロトタイプ宣言 ##########
 VOID MY_FPS_UPDATE(VOID);			//FPS値を計測、更新する
@@ -353,13 +341,10 @@ VOID MY_START_PROC(VOID);			//スタート画面の処理
 VOID MY_START_DRAW(VOID);			//スタート画面の描画
 
 VOID MY_PLAY_INIT(VOID);			//プレイ画面初期化
-VOID MY_PLAY_INIT_OVER(VOID);
+VOID MY_PLAY_INIT_OVER(VOID);		//ゲームオーバー版プレイ画面初期化
 VOID MY_PLAY(VOID);					//プレイ画面
 VOID MY_PLAY_PROC(VOID);			//プレイ画面の処理
 VOID MY_PLAY_DRAW(VOID);			//プレイ画面の描画
-
-VOID MY_PLAY_PROC_STAGE2(VOID);			//プレイ画面の処理
-VOID MY_PLAY_DRAW_STAGE2(VOID);			//プレイ画面の描画
 
 VOID MY_END(VOID);					//エンド画面
 VOID MY_END_PROC(VOID);				//エンド画面の処理
@@ -371,7 +356,7 @@ VOID MY_DELETE_IMAGE(VOID);			//画像をまとめて削除する関数
 BOOL MY_LOAD_MUSIC(VOID);			//音楽をまとめて読み込む関数
 VOID MY_DELETE_MUSIC(VOID);			//音楽をまとめて削除する関数
 
-VOID PLAYER_JUMP(VOID);				//プレイヤーの動きの処理の関数
+VOID PLAYER_MOVE(VOID);				//プレイヤーの動きの処理の関数
 
 BOOL MY_CHECK_GOAL_PLAYER_COLL(RECT);	//ゴールとプレイヤーの当たり判定をする関数
 int MY_CHECK_BLOCK_PLAYER_COLL(RECT);	//ブロックとプレイヤーの当たり判定をする関数
@@ -450,9 +435,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			if (Ret == IDYES) { break; }	//YESなら、ゲームを中断する
 		}
 
-		MY_ALL_KEYDOWN_UPDATE();				//押しているキー状態を取得
+		MY_ALL_KEYDOWN_UPDATE();	//押しているキー状態を取得
 
-		MY_FPS_UPDATE();	//FPSの処理[更新]
+		MY_FPS_UPDATE();			//FPSの処理[更新]
 
 		//シーンごとに処理を行う
 		switch (GameScene)
@@ -611,7 +596,6 @@ BOOL MY_KEYDOWN_KEEP(int KEY_INPUT_, int DownTime)
 	}
 }
 
-
 //フォントをこのソフト用に、一時的にインストール
 BOOL MY_FONT_INSTALL_ONCE(VOID)
 {
@@ -649,7 +633,6 @@ BOOL MY_FONT_CREATE(VOID)
 //フォントを削除する関数
 VOID MY_FONT_DELETE(VOID)
 {
-
 	return;
 }
 
@@ -673,7 +656,7 @@ VOID MY_START_PROC(VOID)
 		PlaySoundMem(BGM_START.handle, DX_PLAYTYPE_LOOP);
 	}
 
-	//スペースキーを押したら、プレイシーンへ移動する
+	//スペースキーを押したら、プレイ画面へ移動する
 	if (MY_KEY_DOWN(KEY_INPUT_SPACE) == TRUE)
 	{
 		//クリアフラグ
@@ -735,6 +718,8 @@ VOID MY_PLAY_INIT(VOID)
 	{
 		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
 		{
+
+			//ゲームのステージ
 			switch (GameStage)
 			{
 			case GAME_STAGE_1:
@@ -767,6 +752,7 @@ VOID MY_PLAY_INIT(VOID)
 			{
 				Cntm++;
 			}
+
 
 			//消えたスターを元に戻す
 			if (map[tate][yoko].kind == m1)
@@ -881,7 +867,7 @@ VOID MY_PLAY_PROC(VOID)
 	player.collBeforePt.x = player.CenterX;
 	player.collBeforePt.y = player.CenterY;
 
-	PLAYER_JUMP();		//プレイヤーの動きの処理
+	PLAYER_MOVE();		//プレイヤーの動きの処理
 
 	//当たり判定
 	player.coll.left = player.CenterX - mapChip.width / 2 + 5;
@@ -933,24 +919,23 @@ VOID MY_PLAY_PROC(VOID)
 					Answer = 3;
 				}
 
-				//スター1を消す
+				//スター1を消す(m1に格納)
 				if (map[tate][yoko].kind == h1)
 				{
 					map[tate][yoko].kind = m1;
 				}
 
-				//スター2を消す
+				//スター2を消す(m2に格納)
 				if (map[tate][yoko].kind == h2)
 				{
 					map[tate][yoko].kind = m2;
 				}
 
-				//スター3を消す
+				//スター3を消す(m3に格納)
 				if (map[tate][yoko].kind == h3)
 				{
 					map[tate][yoko].kind = m3;
 				}
-
 			}
 		}
 	}
@@ -983,7 +968,7 @@ VOID MY_PLAY_PROC(VOID)
 					TogeMove += TogeSpeed;
 				}
 
-				//TogeflagがFALSEなら右に動く
+				//TogeflagがFALSEなら左に動く
 				if (Togeflag == FALSE)
 				{
 					map[tate][yoko].x -= TogeSpeed;
@@ -1013,12 +998,12 @@ VOID MY_PLAY_PROC(VOID)
 	//プレイヤーとゴールがあたっていたらゲームクリア画面に遷移
 	if (MY_CHECK_GOAL_PLAYER_COLL(player.coll) == TRUE)
 	{
-
 		if (CheckSoundMem(BGM_PLAY.handle) != 0)
 		{
 			StopSoundMem(BGM_PLAY.handle);	//BGMを止める
 		}
 
+		//取った解答が正解だったらクリア画面、不正解だったらゲームオーバー画面に遷移
 		switch (GameStage)
 		{
 		case GAME_STAGE_1:
@@ -1124,7 +1109,6 @@ VOID MY_PLAY_DRAW(VOID)
 			{
 				DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 150, 0), FALSE);
 			}
-
 		}
 	}
 
@@ -1151,7 +1135,7 @@ VOID MY_END_PROC(VOID)
 	case GAME_END_CLEAR:
 		//ゲームクリアのとき
 
-		Clearflag = TRUE;
+		Clearflag = TRUE;	//クリアフラグをTRUEにする
 
 		//BGMが流れていないなら
 		if (CheckSoundMem(BGM_CLEAR.handle) == 0)
@@ -1162,14 +1146,14 @@ VOID MY_END_PROC(VOID)
 			PlaySoundMem(BGM_CLEAR.handle, DX_PLAYTYPE_LOOP);
 		}
 
-		GameStage = GAME_STAGE_2;
+		GameStage = GAME_STAGE_2;	//ゲームステージを2にする
 
 		break;
 
 	case GAME_END_OVER:
 		//ゲームオーバーのとき
 
-		Clearflag = FALSE;
+		Clearflag = FALSE;	//クリアフラグをFALSEにする
 
 		//BGMが流れていないなら
 		if (CheckSoundMem(BGM_OVER.handle) == 0)
@@ -1183,7 +1167,7 @@ VOID MY_END_PROC(VOID)
 		break;
 	}
 
-	//エンターキーを押したら、スタートシーンへ移動する
+	//エンターキーを押したら、スタート画面へ移動する
 	if (MY_KEY_DOWN(KEY_INPUT_RETURN) == TRUE)
 	{
 		if (CheckSoundMem(BGM_CLEAR.handle) != 0)
@@ -1201,7 +1185,7 @@ VOID MY_END_PROC(VOID)
 
 	}
 
-	//スペースキーを押したら、プレイシーンへ移動する
+	//スペースキーを押したら、プレイ画面へ移動する
 	if (MY_KEY_DOWN(KEY_INPUT_SPACE) == TRUE)
 	{
 		if (CheckSoundMem(BGM_CLEAR.handle) != 0)
@@ -1217,11 +1201,11 @@ VOID MY_END_PROC(VOID)
 		switch (Clearflag)
 		{
 		case TRUE:
-			MY_PLAY_INIT();	//ゲーム初期化
+			MY_PLAY_INIT();			//ゲームクリアなら通常のプレイ画面初期化
 			break;
 
 		case FALSE:
-			MY_PLAY_INIT_OVER();
+			MY_PLAY_INIT_OVER();	//ゲームオーバーならトゲの位置を初期化
 			break;
 		}
 
@@ -1244,14 +1228,14 @@ VOID MY_END_DRAW(VOID)
 	case GAME_END_CLEAR:
 		//ゲームクリアのとき
 
-			//ゲームクリアの描画
+		//ゲームクリアの描画
 		DrawGraph(ImageTitleCLEAR.x, ImageTitleCLEAR.y, ImageTitleCLEAR.handle, TRUE);
 		break;
 
 	case GAME_END_OVER:
 		//ゲームオーバーのとき
 
-			//ゲームオーバーの描画
+		//ゲームオーバーの描画
 		DrawGraph(ImageTitleOVER.x, ImageTitleOVER.y, ImageTitleOVER.handle, TRUE);
 		break;
 	}
@@ -1263,8 +1247,8 @@ VOID MY_END_DRAW(VOID)
 //画像をまとめて読み込む関数
 BOOL MY_LOAD_IMAGE(VOID)
 {
-	//背景画像
-	strcpy_s(ImageTitle.path, IMG_SOUGEN);		//パスの設定
+	//タイトル背景画像
+	strcpy_s(ImageTitle.path, IMG_SOUGEN);			//パスの設定
 	ImageTitle.handle = LoadGraph(ImageTitle.path);	//読み込み
 	if (ImageTitle.handle == -1)
 	{
@@ -1273,11 +1257,11 @@ BOOL MY_LOAD_IMAGE(VOID)
 		return FALSE;
 	}
 	GetGraphSize(ImageTitle.handle, &ImageTitle.width, &ImageTitle.height);	//画像の幅と高さを取得
-	ImageTitle.x = GAME_WIDTH / 2 - ImageTitle.width / 2;		//左右中央揃え
-	ImageTitle.y = GAME_HEIGHT / 2 - ImageTitle.height / 2;	//上下中央揃え
+	ImageTitle.x = GAME_WIDTH / 2 - ImageTitle.width / 2;					//左右中央揃え
+	ImageTitle.y = GAME_HEIGHT / 2 - ImageTitle.height / 2;					//上下中央揃え
 
-	//背景画像
-	strcpy_s(ImagePlay.path, IMG_SORA);		//パスの設定
+	//プレイ画面背景画像
+	strcpy_s(ImagePlay.path, IMG_SORA);				//パスの設定
 	ImagePlay.handle = LoadGraph(ImagePlay.path);	//読み込み
 	if (ImagePlay.handle == -1)
 	{
@@ -1286,12 +1270,12 @@ BOOL MY_LOAD_IMAGE(VOID)
 		return FALSE;
 	}
 	GetGraphSize(ImagePlay.handle, &ImagePlay.width, &ImagePlay.height);	//画像の幅と高さを取得
-	ImagePlay.x = GAME_WIDTH / 2 - ImagePlay.width / 2;		//左右中央揃え
-	ImagePlay.y = GAME_HEIGHT / 2 - ImagePlay.height / 2;	//上下中央揃え
+	ImagePlay.x = GAME_WIDTH / 2 - ImagePlay.width / 2;						//左右中央揃え
+	ImagePlay.y = GAME_HEIGHT / 2 - ImagePlay.height / 2;					//上下中央揃え
 
 	//タイトルロゴ
-	strcpy_s(ImageTitleROGO.path, IMG_LOGO);						//パスの設定
-	ImageTitleROGO.handle = LoadGraph(ImageTitleROGO.path);				//読み込み
+	strcpy_s(ImageTitleROGO.path, IMG_LOGO);				//パスの設定
+	ImageTitleROGO.handle = LoadGraph(ImageTitleROGO.path);	//読み込み
 	if (ImageTitleROGO.handle == -1)
 	{
 		//エラーメッセージ表示
@@ -1299,12 +1283,12 @@ BOOL MY_LOAD_IMAGE(VOID)
 		return FALSE;
 	}
 	GetGraphSize(ImageTitleROGO.handle, &ImageTitleROGO.width, &ImageTitleROGO.height);	//画像の幅と高さを取得
-	ImageTitleROGO.x = GAME_WIDTH / 2 - ImageTitleROGO.width / 2;		//左右中央揃え
-	ImageTitleROGO.y = GAME_HEIGHT / 2 - ImageTitleROGO.height / 2;	//上下中央揃え
+	ImageTitleROGO.x = GAME_WIDTH / 2 - ImageTitleROGO.width / 2;						//左右中央揃え
+	ImageTitleROGO.y = GAME_HEIGHT / 2 - ImageTitleROGO.height / 2;						//上下中央揃え
 
 	//エンド画面(GAME CLEAR)の画像
-	strcpy_s(ImageTitleCLEAR.path, IMG_LOGO_CLEAR);						//パスの設定
-	ImageTitleCLEAR.handle = LoadGraph(ImageTitleCLEAR.path);			//読み込み
+	strcpy_s(ImageTitleCLEAR.path, IMG_LOGO_CLEAR);				//パスの設定
+	ImageTitleCLEAR.handle = LoadGraph(ImageTitleCLEAR.path);	//読み込み
 	if (ImageTitleCLEAR.handle == -1)
 	{
 		//エラーメッセージ表示
@@ -1312,12 +1296,12 @@ BOOL MY_LOAD_IMAGE(VOID)
 		return FALSE;
 	}
 	GetGraphSize(ImageTitleCLEAR.handle, &ImageTitleCLEAR.width, &ImageTitleCLEAR.height);	//画像の幅と高さを取得
-	ImageTitleCLEAR.x = GAME_WIDTH / 2 - ImageTitleCLEAR.width / 2;		//左右中央揃え
-	ImageTitleCLEAR.y = GAME_HEIGHT / 2 - ImageTitleCLEAR.height / 2;	//上下中央揃え
+	ImageTitleCLEAR.x = GAME_WIDTH / 2 - ImageTitleCLEAR.width / 2;							//左右中央揃え
+	ImageTitleCLEAR.y = GAME_HEIGHT / 2 - ImageTitleCLEAR.height / 2;						//上下中央揃え
 
 	//エンド画面(GAME OVER)の画像
-	strcpy_s(ImageTitleOVER.path, IMG_LOGO_OVER);						//パスの設定
-	ImageTitleOVER.handle = LoadGraph(ImageTitleOVER.path);				//読み込み
+	strcpy_s(ImageTitleOVER.path, IMG_LOGO_OVER);			//パスの設定
+	ImageTitleOVER.handle = LoadGraph(ImageTitleOVER.path);	//読み込み
 	if (ImageTitleOVER.handle == -1)
 	{
 		//エラーメッセージ表示
@@ -1325,12 +1309,12 @@ BOOL MY_LOAD_IMAGE(VOID)
 		return FALSE;
 	}
 	GetGraphSize(ImageTitleOVER.handle, &ImageTitleOVER.width, &ImageTitleOVER.height);	//画像の幅と高さを取得
-	ImageTitleOVER.x = GAME_WIDTH / 2 - ImageTitleOVER.width / 2;		//左右中央揃え
-	ImageTitleOVER.y = GAME_HEIGHT / 2 - ImageTitleOVER.height / 2;	//上下中央揃え
+	ImageTitleOVER.x = GAME_WIDTH / 2 - ImageTitleOVER.width / 2;						//左右中央揃え
+	ImageTitleOVER.y = GAME_HEIGHT / 2 - ImageTitleOVER.height / 2;						//上下中央揃え
 
 	//PRESS OF SPACEKEY!!!の画像
-	strcpy_s(ImageSpace.path, IMG_SPACE);						//パスの設定
-	ImageSpace.handle = LoadGraph(ImageSpace.path);				//読み込み
+	strcpy_s(ImageSpace.path, IMG_SPACE);			//パスの設定
+	ImageSpace.handle = LoadGraph(ImageSpace.path);	//読み込み
 	if (ImageSpace.handle == -1)
 	{
 		//エラーメッセージ表示
@@ -1338,12 +1322,12 @@ BOOL MY_LOAD_IMAGE(VOID)
 		return FALSE;
 	}
 	GetGraphSize(ImageSpace.handle, &ImageSpace.width, &ImageSpace.height);	//画像の幅と高さを取得
-	ImageSpace.x = GAME_WIDTH / 2 - ImageSpace.width / 2;		//左右中央揃え
-	ImageSpace.y = GAME_HEIGHT / 2 + ImageSpace.height + 30;	//上下中央揃え
+	ImageSpace.x = GAME_WIDTH / 2 - ImageSpace.width / 2;					//左右中央揃え
+	ImageSpace.y = GAME_HEIGHT / 2 + ImageSpace.height + 30;				//上下中央揃え
 
-	//PRESS OF SPACEKEY!!!の画像
-	strcpy_s(ImageEnter.path, IMG_ENTER);						//パスの設定
-	ImageEnter.handle = LoadGraph(ImageEnter.path);				//読み込み
+	//PRESS OF ENTERKEY!!!の画像
+	strcpy_s(ImageEnter.path, IMG_ENTER);			//パスの設定
+	ImageEnter.handle = LoadGraph(ImageEnter.path);	//読み込み
 	if (ImageEnter.handle == -1)
 	{
 		//エラーメッセージ表示
@@ -1351,11 +1335,11 @@ BOOL MY_LOAD_IMAGE(VOID)
 		return FALSE;
 	}
 	GetGraphSize(ImageEnter.handle, &ImageEnter.width, &ImageEnter.height);	//画像の幅と高さを取得
-	ImageEnter.x = GAME_WIDTH / 2 - ImageEnter.width / 2;		//左右中央揃え
-	ImageEnter.y = GAME_HEIGHT / 2 + ImageEnter.height + 30;	//上下中央揃え
+	ImageEnter.x = GAME_WIDTH / 2 - ImageEnter.width / 2;					//左右中央揃え
+	ImageEnter.y = GAME_HEIGHT / 2 + ImageEnter.height + 30;				//上下中央揃え
 
 	//プレイヤーの画像
-	strcpy_s(player.image.path, IMG_MARU);		//パスの設定
+	strcpy_s(player.image.path, IMG_MARU);				//パスの設定
 	player.image.handle = LoadGraph(player.image.path);	//読み込み
 	if (player.image.handle == -1)
 	{
@@ -1435,11 +1419,11 @@ VOID MY_DELETE_IMAGE(VOID)
 BOOL MY_LOAD_MUSIC(VOID)
 {
 	//スタート画面BGMの読み込み
-	strcpy_s(BGM_START.path, MUSIC_START_PATH);		//パスの設定
+	strcpy_s(BGM_START.path, MUSIC_START_PATH);			//パスの設定
 	BGM_START.handle = LoadSoundMem(BGM_START.path);	//読み込み
 	if (BGM_START.handle == -1)
 	{
-		//	エラーメッセージ表示
+		//エラーメッセージ表示
 		MessageBox(GetMainWindowHandle(), MUSIC_START_PATH, MUSIC_LOAD_ERR_TITLE, MB_OK);
 		return FALSE;
 	}
@@ -1449,7 +1433,7 @@ BOOL MY_LOAD_MUSIC(VOID)
 	BGM_PLAY.handle = LoadSoundMem(BGM_PLAY.path);	//読み込み
 	if (BGM_PLAY.handle == -1)
 	{
-		//	エラーメッセージ表示
+		//エラーメッセージ表示
 		MessageBox(GetMainWindowHandle(), MUSIC_PLAY_PATH, MUSIC_LOAD_ERR_TITLE, MB_OK);
 		return FALSE;
 	}
@@ -1465,7 +1449,7 @@ BOOL MY_LOAD_MUSIC(VOID)
 	}
 
 	//ゲームオーバー画面BGMの読み込み
-	strcpy_s(BGM_OVER.path, MUSIC_OVER_PATH);			//パスの設定
+	strcpy_s(BGM_OVER.path, MUSIC_OVER_PATH);		//パスの設定
 	BGM_OVER.handle = LoadSoundMem(BGM_OVER.path);	//読み込み
 	if (BGM_OVER.handle == -1)
 	{
@@ -1505,7 +1489,7 @@ BOOL MY_LOAD_MUSIC(VOID)
 	}
 
 	//スターSEの読み込み
-	strcpy_s(BGM_STAR.path, MUSIC_STAR_PATH);		    //パスの設定
+	strcpy_s(BGM_STAR.path, MUSIC_STAR_PATH);		//パスの設定
 	BGM_STAR.handle = LoadSoundMem(BGM_STAR.path);	//読み込み
 	if (BGM_STAR.handle == -1)
 	{
@@ -1564,10 +1548,10 @@ int MY_CHECK_BLOCK_PLAYER_COLL(RECT player)
 			//プレイヤーとブロックが当たっているとき
 			if (MY_CHECK_RECT_COLL(player, mapColl[tate][yoko]) == TRUE)
 			{
-				//ブロックのときは、TRUEを返す
+				//通常ブロックのときは、1を返す
 				if (map[tate][yoko].kind == b) { return 1; }
 
-				//ブロックのときは、TRUEを返す
+				//動くブロックのときは、2を返す
 				if (map[tate][yoko].kind == a) { return 2; }
 
 			}
@@ -1575,7 +1559,6 @@ int MY_CHECK_BLOCK_PLAYER_COLL(RECT player)
 	}
 
 	return FALSE;
-
 }
 
 //プレイヤーとスターの当たり判定をする関数
@@ -1589,13 +1572,13 @@ int MY_CHECK_STAR_PLAYER_COLL(RECT player)
 			//プレイヤーとスターが当たっているとき
 			if (MY_CHECK_RECT_COLL(player, mapColl[tate][yoko]) == TRUE)
 			{
-				//スターのときは、TRUEを返す
+				//スター1のときは、1を返す
 				if (map[tate][yoko].kind == h1) { return 1; }
 
-				//スターのときは、TRUEを返す
+				//スター2のときは、2を返す
 				if (map[tate][yoko].kind == h2) { return 2; }
 
-				//スターのときは、TRUEを返す
+				//スター3のときは、3を返す
 				if (map[tate][yoko].kind == h3) { return 3; }
 
 			}
@@ -1603,7 +1586,6 @@ int MY_CHECK_STAR_PLAYER_COLL(RECT player)
 	}
 
 	return FALSE;
-
 }
 
 //プレイヤーとトゲの当たり判定をする関数
@@ -1617,10 +1599,10 @@ int MY_CHECK_TOGE_PLAYER_COLL(RECT player)
 			//プレイヤーとトゲが当たっているとき
 			if (MY_CHECK_RECT_COLL(player, mapColl[tate][yoko]) == TRUE)
 			{
-				//トゲのときは、TRUEを返す
+				//通常トゲのときは、1を返す
 				if (map[tate][yoko].kind == n) { return 1; }
 
-				//トゲのときは、TRUEを返す
+				//動くトゲのときは、2を返す
 				if (map[tate][yoko].kind == m) { return 2; }
 
 			}
@@ -1628,7 +1610,6 @@ int MY_CHECK_TOGE_PLAYER_COLL(RECT player)
 	}
 
 	return FALSE;
-
 }
 
 //領域の当たり判定をする関数
@@ -1648,14 +1629,14 @@ BOOL MY_CHECK_RECT_COLL(RECT a, RECT b)
 }
 
 //プレイヤーの動きの処理の関数
-VOID PLAYER_JUMP(VOID)
+VOID PLAYER_MOVE(VOID)
 {
 
 	//ジャンプフラグがTRUEでWキーを押していてプレイヤーとブロックがあたっていたらジャンプ
 	if (Jumpflag == TRUE && CheckHitKey(KEY_INPUT_W) == TRUE && MY_CHECK_BLOCK_PLAYER_COLL(player.coll) == 1)
 	{
 		//ジャンプSEを流す
-		ChangeVolumeSoundMem(255 * 60 / 100, BGM_JUMP1.handle);	//80%の音量にする
+		ChangeVolumeSoundMem(255 * 60 / 100, BGM_JUMP1.handle);	//60%の音量にする
 		PlaySoundMem(BGM_JUMP1.handle, DX_PLAYTYPE_BACK);
 
 		JumpPower = 13;			//約1ブロック分のジャンプ
@@ -1667,12 +1648,12 @@ VOID PLAYER_JUMP(VOID)
 	if (WJumpflag == TRUE && CheckHitKey(KEY_INPUT_W) == TRUE)
 	{
 		//二段ジャンプSEを流す
-		ChangeVolumeSoundMem(255 * 60 / 100, BGM_JUMP2.handle);	//80%の音量にする
+		ChangeVolumeSoundMem(255 * 60 / 100, BGM_JUMP2.handle);	//60%の音量にする
 		PlaySoundMem(BGM_JUMP2.handle, DX_PLAYTYPE_BACK);
 
 		JumpPower = 13;			//２ブロック分のジャンプ
 		WJumpflag = FALSE;		//二段ジャンプフラグをFALSEにする
-		WKeyflag = FALSE;		//WキーフラグをTRUEにする
+		WKeyflag = FALSE;		//WキーフラグをFALSEにする
 	}
 
 	//Wキーを離してプレイヤーが地面につくと
