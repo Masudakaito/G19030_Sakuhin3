@@ -244,7 +244,6 @@ int Map2Answer = 1;				//マップ2の答え = 1
 int Map3Answer = 2;				//マップ3の答え = 2
 int Map4Answer = 3;				//マップ4の答え = 3
 
-
 IMAGE ImageTitle;				//タイトル画面の背景画像
 IMAGE ImagePlay;				//プレイ画面の背景画像
 IMAGE ImageTitleROGO;			//ロゴの画像
@@ -269,16 +268,16 @@ MUSIC BGM_STAR;					//スター取った時のSE
 GAME_MAP_KIND mapData[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
 	//  0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9
 		b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,	// 0
-		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 1
-		b,t,t,t,t,m,t,t,t,t,t,t,t,t,t,m,t,t,t,b,	// 2
-		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 3
-		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 4
-		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 5
-		b,t,t,t,t,h2,t,t,t,h1,t,t,t,t,h3,t,t,t,t,b,	// 6
-		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 7
-		b,t,t,t,t,t,t,t,m,t,t,t,t,t,t,t,t,t,t,b,	// 8
-		b,s,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,g,b,	// 9
-		b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,	// 0
+		n,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,n,	// 1
+		n,t,t,g,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,n,	// 2
+		n,t,t,b,n,n,t,t,n,t,t,t,t,n,t,t,t,t,t,n,	// 3
+		n,t,t,t,t,t,t,t,n,t,t,t,t,n,t,t,t,t,t,n,	// 4
+		n,h3,t,t,t,t,t,t,t,b,t,t,t,t,t,t,t,t,t,n,	// 5
+		n,b,t,t,t,t,t,t,t,t,t,n,t,h1,t,t,t,t,t,n,	// 6
+		n,t,t,t,t,b,t,t,t,t,b,t,t,b,t,t,t,t,t,n,	// 7
+		n,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,n,h2,n,	// 8
+		n,s,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,n,n,	// 9
+		b,b,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,b,	// 0
 };	//ステージ1のマップ
 
 GAME_MAP_KIND mapData2[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
@@ -652,7 +651,7 @@ VOID MY_START_PROC(VOID)
 	if (CheckSoundMem(BGM_START.handle) == 0)
 	{
 		//BGMの音量を下げる
-		ChangeVolumeSoundMem(255 * 80 / 100, BGM_START.handle);	//50%の音量にする
+		ChangeVolumeSoundMem(255 * 80 / 100, BGM_START.handle);	//80%の音量にする
 		PlaySoundMem(BGM_START.handle, DX_PLAYTYPE_LOOP);
 	}
 
@@ -858,7 +857,7 @@ VOID MY_PLAY_PROC(VOID)
 	if (CheckSoundMem(BGM_PLAY.handle) == 0)
 	{
 		//BGMの音量を下げる
-		ChangeVolumeSoundMem(255 * 30 / 100, BGM_PLAY.handle);	//50%の音量にする
+		ChangeVolumeSoundMem(255 * 30 / 100, BGM_PLAY.handle);	//30%の音量にする
 		PlaySoundMem(BGM_PLAY.handle, DX_PLAYTYPE_LOOP);
 
 	}
