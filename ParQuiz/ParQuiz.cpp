@@ -55,6 +55,11 @@
 #define IMG_LOGO_OVER			TEXT(".\\IMAGE\\logo_end2.png")			//ゲームオーバーの画像
 #define IMG_SPACE				TEXT(".\\IMAGE\\pressofspace.png")		//PRESS OF SPACEKEYの画像
 #define IMG_ENTER				TEXT(".\\IMAGE\\pressofenter.png")		//PRESS OF ENTERの画像
+#define IMG_QUESTION_1			TEXT(".\\IMAGE\\Question1.png")			//クイズ1の画像
+
+#define IMAGE_QUIZ_ROTA			0.05	//拡大率
+#define IMAGE_QUIZ_ROTA_MAX		1		//拡大率MAX
+#define IMAGE_QUIZ_X_SPEED		1		//X移動速度
 
 #define GAME_MAP_PATH			TEXT(".\\IMAGE\\mapchip1ver5.png")		//マップチップの画像
 
@@ -103,6 +108,7 @@ enum GAME_SCENE {
 	GAME_SCENE_START,
 	GAME_SCENE_PLAY,
 	GAME_SCENE_END,
+	GAME_SCENE_QUIZ,
 };	//ゲームのシーン
 
 enum GAME_STAGE {
@@ -164,9 +170,14 @@ typedef struct STRUCT_IMAGE
 	int width;					//幅
 	int height;					//高さ
 	double radian;				//ラジアン(角度)
+	double angle;				//回転率
+	double angleMAX;			//回転率MAX
+	double rate;				//拡大率
+	double rateMAX;				//拡大率MAX
 	BOOL IsDraw = FALSE;		//描画できるか
 
 }IMAGE;	//画像構造体
+
 
 typedef struct STRUCT_MUSIC
 {
@@ -249,6 +260,7 @@ IMAGE ImagePlay;				//プレイ画面の背景画像
 IMAGE ImageTitleROGO;			//ロゴの画像
 IMAGE ImageTitleCLEAR;			//クリアの画像
 IMAGE ImageTitleOVER;			//ゲームオーバーの画像
+IMAGE ImageQuestion1;			//クイズ１の画像
 
 IMAGE ImageSpace;				//スペースキーを押してください
 IMAGE ImageEnter;				//エンターキーを押してください
@@ -349,6 +361,10 @@ VOID MY_END(VOID);					//エンド画面
 VOID MY_END_PROC(VOID);				//エンド画面の処理
 VOID MY_END_DRAW(VOID);				//エンド画面の描画
 
+VOID MY_QUIZ(VOID);					//クイズ画面
+VOID MY_QUIZ_PROC(VOID);			//クイズ画面の処理
+VOID MY_QUIZ_DRAW(VOID);			//クイズ画面の描画
+
 BOOL MY_LOAD_IMAGE(VOID);			//画像をまとめて読み込む関数
 VOID MY_DELETE_IMAGE(VOID);			//画像をまとめて削除する関数
 
@@ -443,6 +459,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		{
 		case GAME_SCENE_START:
 			MY_START();	//スタート画面
+			break;
+		case GAME_SCENE_QUIZ:
+			MY_QUIZ();	//クイズ画面
 			break;
 		case GAME_SCENE_PLAY:
 			MY_PLAY();	//プレイ画面
@@ -685,7 +704,7 @@ VOID MY_START_PROC(VOID)
 		GameEndKind = GAME_END_OVER;
 
 		//ゲームのシーンをプレイ画面にする
-		GameScene = GAME_SCENE_PLAY;
+		GameScene = GAME_SCENE_QUIZ;
 
 	}
 
@@ -703,6 +722,51 @@ VOID MY_START_DRAW(VOID)
 
 	//PRESS OF SPACEKEYを描画する
 	DrawGraph(ImageSpace.x, ImageSpace.y, ImageSpace.handle, TRUE);	//PRESS OF SPACEKEYの描画
+
+	return;
+}
+
+//クイズ画面
+VOID MY_QUIZ(VOID)
+{
+	MY_QUIZ_PROC();	//クイズ画面の処理
+	MY_QUIZ_DRAW();	//クイズ画面の描画
+
+	return;
+}
+
+//クイズ画面の処理
+VOID MY_QUIZ_PROC(VOID)
+{
+
+	//クイズを拡大
+	if (ImageQuestion1.rate < ImageQuestion1.rateMAX)
+	{
+		ImageQuestion1.rate += IMAGE_QUIZ_ROTA;
+	}
+
+	//スペースキーを押したら、プレイ画面へ移動する
+	if (MY_KEY_DOWN(KEY_INPUT_RETURN) == TRUE)
+	{
+		//ゲームのシーンをプレイ画面にする
+		GameScene = GAME_SCENE_PLAY;
+	}
+
+	return;
+}
+
+//クイズ画面の描画
+VOID MY_QUIZ_DRAW(VOID)
+{
+	MY_PLAY_DRAW();	//プレイ画面を描画
+
+	//クイズを拡大しながら描画
+	DrawRotaGraph(
+		ImageQuestion1.x, ImageQuestion1.y,			//画像の座標
+		ImageQuestion1.rate,						//画像の拡大率
+		ImageQuestion1.angle,						//画像の回転率
+		ImageQuestion1.handle, TRUE					//画像のハンドル
+	);
 
 	return;
 }
@@ -1336,6 +1400,23 @@ BOOL MY_LOAD_IMAGE(VOID)
 	GetGraphSize(ImageEnter.handle, &ImageEnter.width, &ImageEnter.height);	//画像の幅と高さを取得
 	ImageEnter.x = GAME_WIDTH / 2 - ImageEnter.width / 2;					//左右中央揃え
 	ImageEnter.y = GAME_HEIGHT / 2 + ImageEnter.height + 30;				//上下中央揃え
+
+	//クイズ背景
+	strcpy_s(ImageQuestion1.path, IMG_QUESTION_1);				//パスの設定
+	ImageQuestion1.handle = LoadGraph(ImageQuestion1.path);	//読み込み
+	if (ImageQuestion1.handle == -1)
+	{
+		//エラーメッセージ表示
+		MessageBox(GetMainWindowHandle(), IMG_QUESTION_1, IMAGE_LOAD_ERR_TITLE, MB_OK);
+		return FALSE;
+	}
+	GetGraphSize(ImageQuestion1.handle, &ImageQuestion1.width, &ImageQuestion1.height);	//画像の幅と高さを取得
+	ImageQuestion1.x = GAME_WIDTH/2;								//左右中央揃え
+	ImageQuestion1.y = GAME_HEIGHT/2;								//上下中央揃え
+	ImageQuestion1.angle = DX_PI * 2;					//回転率
+	ImageQuestion1.angleMAX = DX_PI * 2;				//回転率MAX
+	ImageQuestion1.rate = 0.1;							//拡大率
+	ImageQuestion1.rateMAX = IMAGE_QUIZ_ROTA_MAX;		//拡大率MAX
 
 	//プレイヤーの画像
 	strcpy_s(player.image.path, IMG_MARU);				//パスの設定
