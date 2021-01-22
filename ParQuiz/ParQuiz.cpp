@@ -249,6 +249,7 @@ int Togeflag = TRUE;			//動くトゲの切り返しのフラグ(TRUEのときは右に動く)
 int TogeMove = 0;				//トゲが動いた距離を測る変数
 int Cntm = 0;					//動くトゲのカウンター(トゲが増えるほど増えていく)
 int Clearflag = TRUE;			//クリアしたかどうかのフラグ(プレイ画面の初期化に使用)
+int Quizflag = FALSE;			//クイズが表示されているかどうかのフラグ
 
 int Map1Answer = 2;				//マップ1の答え = 2
 int Map2Answer = 1;				//マップ2の答え = 1
@@ -738,18 +739,38 @@ VOID MY_QUIZ(VOID)
 //クイズ画面の処理
 VOID MY_QUIZ_PROC(VOID)
 {
-
-	//クイズを拡大
-	if (ImageQuestion1.rate < ImageQuestion1.rateMAX)
+	//QuizflagがFALSEの場合
+	if (Quizflag == FALSE)
 	{
-		ImageQuestion1.rate += IMAGE_QUIZ_ROTA;
+		//クイズを拡大
+		if (ImageQuestion1.rate < ImageQuestion1.rateMAX)
+		{
+			ImageQuestion1.rate += IMAGE_QUIZ_ROTA;
+		}
 	}
 
-	//スペースキーを押したら、プレイ画面へ移動する
+	//エンターキーを押したら、QuizflagをTRUEにする
 	if (MY_KEY_DOWN(KEY_INPUT_RETURN) == TRUE)
+	{	
+		Quizflag = TRUE;
+
+	}
+
+	//QuizflagがTRUEの場合
+	if (Quizflag == TRUE)
 	{
+		//クイズを拡小
+		if (ImageQuestion1.rate > 0)
+		{
+			ImageQuestion1.rate -= IMAGE_QUIZ_ROTA;
+		}
+
+		//画像が消えたらプレイ画面へ
+		else
+		{
 		//ゲームのシーンをプレイ画面にする
 		GameScene = GAME_SCENE_PLAY;
+		}
 	}
 
 	return;
@@ -1489,6 +1510,7 @@ VOID MY_DELETE_IMAGE(VOID)
 	DeleteGraph(ImageTitleOVER.handle);
 	DeleteGraph(ImageSpace.handle);
 	DeleteGraph(ImageEnter.handle);
+	DeleteGraph(ImageQuestion1.handle);
 
 	for (int i_num = 0; i_num < MAP_DIV_NUM; i_num++) { DeleteGraph(mapChip.handle[i_num]); }
 
