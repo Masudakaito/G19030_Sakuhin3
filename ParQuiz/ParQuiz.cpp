@@ -56,6 +56,9 @@
 #define IMG_SPACE				TEXT(".\\IMAGE\\pressofspace.png")		//PRESS OF SPACEKEYの画像
 #define IMG_ENTER				TEXT(".\\IMAGE\\pressofenter.png")		//PRESS OF ENTERの画像
 #define IMG_QUESTION_1			TEXT(".\\IMAGE\\Question1.png")			//クイズ1の画像
+#define IMG_QUESTION_2			TEXT(".\\IMAGE\\Question2.png")			//クイズ2の画像
+#define IMG_QUESTION_3			TEXT(".\\IMAGE\\Question3.png")			//クイズ3の画像
+#define IMG_QUESTION_4			TEXT(".\\IMAGE\\Question4.png")			//クイズ4の画像
 
 #define IMAGE_QUIZ_ROTA			0.05	//拡大率
 #define IMAGE_QUIZ_ROTA_MAX		1		//拡大率MAX
@@ -250,6 +253,7 @@ int TogeMove = 0;				//トゲが動いた距離を測る変数
 int Cntm = 0;					//動くトゲのカウンター(トゲが増えるほど増えていく)
 int Clearflag = TRUE;			//クリアしたかどうかのフラグ(プレイ画面の初期化に使用)
 int Quizflag = FALSE;			//クイズが表示されているかどうかのフラグ
+int Mapflag = TRUE;				//マップを変えるためのフラグ
 
 int Map1Answer = 2;				//マップ1の答え = 2
 int Map2Answer = 1;				//マップ2の答え = 1
@@ -262,6 +266,9 @@ IMAGE ImageTitleROGO;			//ロゴの画像
 IMAGE ImageTitleCLEAR;			//クリアの画像
 IMAGE ImageTitleOVER;			//ゲームオーバーの画像
 IMAGE ImageQuestion1;			//クイズ１の画像
+IMAGE ImageQuestion2;			//クイズ２の画像
+IMAGE ImageQuestion3;			//クイズ３の画像
+IMAGE ImageQuestion4;			//クイズ４の画像
 
 IMAGE ImageSpace;				//スペースキーを押してください
 IMAGE ImageEnter;				//エンターキーを押してください
@@ -278,14 +285,14 @@ MUSIC BGM_JUMP2;				//ニ段ジャンプSE
 MUSIC BGM_STAR;					//スター取った時のSE
 
 
-GAME_MAP_KIND mapData[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
+GAME_MAP_KIND mapData1[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
 	//  0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9
 		b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,	// 0
 		n,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,n,	// 1
 		n,t,t,g,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,n,	// 2
 		n,t,t,b,n,n,t,t,n,t,t,t,t,n,t,t,t,t,t,n,	// 3
 		n,t,t,t,t,t,t,t,n,t,t,t,t,n,t,t,t,t,t,n,	// 4
-		n,h3,t,t,t,t,t,t,t,b,t,t,t,t,t,t,t,t,t,n,	// 5
+		n,h2,t,t,t,t,t,t,t,b,t,t,t,t,t,t,t,t,t,n,	// 5
 		n,b,t,t,t,t,t,t,t,t,t,n,t,h1,t,t,t,t,t,n,	// 6
 		n,t,t,t,t,b,t,t,t,t,b,t,t,b,t,t,t,t,t,n,	// 7
 		n,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,n,h2,n,	// 8
@@ -301,13 +308,42 @@ GAME_MAP_KIND mapData2[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
 		b,t,t,t,t,t,t,t,t,t,n,t,t,n,n,n,t,t,t,n,	// 3
 		b,t,t,t,t,t,h3,t,t,t,n,t,t,n,n,n,b,t,t,n,	// 4
 		b,b,h2,t,t,t,t,t,t,t,n,t,t,n,n,n,t,t,t,n,	// 5
-		b,t,t,t,t,t,t,t,t,t,n,t,t,n,n,n,t,t,b,n,	// 6
-		b,t,t,t,t,t,t,t,t,t,n,t,t,t,t,t,t,t,t,n,	// 7
+		b,g,t,t,t,t,t,t,t,t,n,t,t,n,n,n,t,t,b,n,	// 6
+		b,t,t,s,t,t,t,t,t,t,n,t,t,t,t,t,t,t,t,n,	// 7
 		b,t,t,b,t,t,t,t,t,b,t,t,t,t,t,t,t,b,t,n,	// 8
-		b,s,t,b,t,t,h1,t,t,b,t,t,t,t,t,t,t,t,t,n,	// 9
+		b,t,t,b,t,t,h1,t,t,b,t,t,t,t,t,t,t,t,t,n,	// 9
 		b,b,b,b,n,n,n,n,n,b,b,n,n,n,n,b,n,n,n,n,	// 10
 };	//ステージ２のマップ
 
+GAME_MAP_KIND mapData3[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
+	//  0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9
+		b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,	// 0
+		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 1
+		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 2
+		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 3
+		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 4
+		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 5
+		b,s,t,t,h2,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 6
+		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 7
+		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 8
+		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,g,b,	// 9
+		b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,	// 10
+};	//ステージ３のマップ
+
+GAME_MAP_KIND mapData4[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
+	//  0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9
+		b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,	// 0
+		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 1
+		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 2
+		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 3
+		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 4
+		b,t,t,t,t,t,t,t,t,s,t,t,t,t,t,t,t,t,t,b,	// 5
+		b,t,t,t,h3,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 6
+		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 7
+		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 8
+		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,g,t,t,b,	// 9
+		b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,	// 10
+};	//ステージ４のマップ
 
 //ゲームマップの初期化
 GAME_MAP_KIND mapDataInit[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX];
@@ -320,9 +356,6 @@ MAPCHIP mapChip;
 
 //マップの場所を管理
 MAP map[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX];
-
-//マップ2の場所を管理
-MAP map2[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX];
 
 //スタートの位置
 iPOINT startPt{ -1,-1 };
@@ -411,31 +444,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	if (MY_FONT_CREATE() == FALSE) { return -1; }
 
 	SetDrawScreen(DX_SCREEN_BACK);	//Draw系関数は裏画面に描画
-
-	//プレイヤーの最初の位置を、スタート位置にする
-	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
-	{
-		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
-		{
-			//スタート位置を探す
-			if (mapData[tate][yoko] == s)
-			{
-				//スタート位置を計算
-				startPt.x = mapChip.width * yoko + mapChip.width / 2;	//中心X座標を取得
-				startPt.y = mapChip.height * tate + mapChip.height / 2;	//中心Y座標を取得
-				break;
-			}
-		}
-		//スタートが決まっていれば、ループ終了
-		if (startPt.x != -1 && startPt.y != -1) { break; }
-	}
-
-	//スタートが決まっていなければ
-	if (startPt.x == -1 && startPt.y == -1)
-	{
-		//エラーメッセージ表示
-		MessageBox(GetMainWindowHandle(), START_ERR_CAPTION, START_ERR_TITLE, MB_OK);	return -1;
-	}
 
 	//無限ループ
 	while (TRUE)
@@ -809,7 +817,7 @@ VOID MY_PLAY_INIT(VOID)
 			case GAME_STAGE_1:
 
 				//マップの種類をコピー
-				map[tate][yoko].kind = mapData[tate][yoko];
+				map[tate][yoko].kind = mapData1[tate][yoko];
 
 				break;
 
@@ -817,6 +825,20 @@ VOID MY_PLAY_INIT(VOID)
 
 				//マップの種類をコピー
 				map[tate][yoko].kind = mapData2[tate][yoko];
+
+				break;
+
+			case GAME_STAGE_3:
+
+				//マップの種類をコピー
+				map[tate][yoko].kind = mapData3[tate][yoko];
+
+				break;
+
+			case GAME_STAGE_4:
+
+				//マップの種類をコピー
+				map[tate][yoko].kind = mapData4[tate][yoko];
 
 				break;
 
@@ -837,7 +859,6 @@ VOID MY_PLAY_INIT(VOID)
 				Cntm++;
 			}
 
-
 			//消えたスターを元に戻す
 			if (map[tate][yoko].kind == m1)
 			{
@@ -856,6 +877,22 @@ VOID MY_PLAY_INIT(VOID)
 		}
 	}
 
+	//プレイヤーの最初の位置を、スタート位置にする
+	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
+	{
+		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
+		{
+			//スタート位置を探す
+			if (map[tate][yoko].kind == s)
+			{
+				//スタート位置を計算
+				startPt.x = mapChip.width * yoko + mapChip.width / 2;	//中心X座標を取得
+				startPt.y = mapChip.height * tate + mapChip.height / 2;	//中心Y座標を取得
+				break;
+			}
+		}
+	}
+
 	//プレイヤーをスタート位置に描画
 	player.image.x = startPt.x - 30;
 	player.CenterX = startPt.x;
@@ -865,7 +902,7 @@ VOID MY_PLAY_INIT(VOID)
 	Answer = 0;			//持っている回答を消す
 	Togeflag = TRUE;	//トゲを右に動くようにする
 	TogeMove = 0;		//TogeMoveを初期化
-
+	Mapflag = TRUE;
 	return;
 }
 
@@ -1221,6 +1258,43 @@ VOID MY_END_PROC(VOID)
 
 		Clearflag = TRUE;	//クリアフラグをTRUEにする
 
+		//MapflagがTRUEのとき
+		if (Mapflag == TRUE)
+		{
+			//ステージを次に進める
+			switch (GameStage)
+			{
+			case GAME_STAGE_1:
+
+				GameStage = GAME_STAGE_2;
+				Mapflag = FALSE;
+
+				break;
+
+			case GAME_STAGE_2:
+
+				GameStage = GAME_STAGE_3;
+				Mapflag = FALSE;
+
+				break;
+
+			case GAME_STAGE_3:
+
+				GameStage = GAME_STAGE_4;
+				Mapflag = FALSE;
+
+				break;
+
+			case GAME_STAGE_4:
+
+				GameStage = GAME_STAGE_1;
+				Mapflag = FALSE;
+
+				break;
+
+			}
+		}
+
 		//BGMが流れていないなら
 		if (CheckSoundMem(BGM_CLEAR.handle) == 0)
 		{
@@ -1229,8 +1303,6 @@ VOID MY_END_PROC(VOID)
 			ChangeVolumeSoundMem(255 * 50 / 100, BGM_CLEAR.handle);	//50%の音量にする
 			PlaySoundMem(BGM_CLEAR.handle, DX_PLAYTYPE_LOOP);
 		}
-
-		GameStage = GAME_STAGE_2;	//ゲームステージを2にする
 
 		break;
 
