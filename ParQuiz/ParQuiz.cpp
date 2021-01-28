@@ -396,8 +396,14 @@ VOID MY_END_PROC(VOID);				//エンド画面の処理
 VOID MY_END_DRAW(VOID);				//エンド画面の描画
 
 VOID MY_QUIZ(VOID);					//クイズ画面
-VOID MY_QUIZ_PROC(VOID);			//クイズ画面の処理
-VOID MY_QUIZ_DRAW(VOID);			//クイズ画面の描画
+VOID MY_QUIZ1_PROC(VOID);			//クイズ画面1の処理
+VOID MY_QUIZ1_DRAW(VOID);			//クイズ画面1の描画
+VOID MY_QUIZ2_PROC(VOID);			//クイズ画面2の処理
+VOID MY_QUIZ2_DRAW(VOID);			//クイズ画面2の描画
+VOID MY_QUIZ3_PROC(VOID);			//クイズ画面3の処理
+VOID MY_QUIZ3_DRAW(VOID);			//クイズ画面3の描画
+VOID MY_QUIZ4_PROC(VOID);			//クイズ画面4の処理
+VOID MY_QUIZ4_DRAW(VOID);			//クイズ画面4の描画
 
 BOOL MY_LOAD_IMAGE(VOID);			//画像をまとめて読み込む関数
 VOID MY_DELETE_IMAGE(VOID);			//画像をまとめて削除する関数
@@ -675,6 +681,8 @@ VOID MY_START(VOID)
 //スタート画面の処理
 VOID MY_START_PROC(VOID)
 {
+	Quizflag = FALSE;
+
 	//BGMが流れていないなら
 	if (CheckSoundMem(BGM_START.handle) == 0)
 	{
@@ -738,14 +746,30 @@ VOID MY_START_DRAW(VOID)
 //クイズ画面
 VOID MY_QUIZ(VOID)
 {
-	MY_QUIZ_PROC();	//クイズ画面の処理
-	MY_QUIZ_DRAW();	//クイズ画面の描画
-
+	switch (GameStage)
+	{
+	case GAME_STAGE_1:
+			MY_QUIZ1_PROC();	//クイズ画面1の処理
+			MY_QUIZ1_DRAW();	//クイズ画面1の描画
+			break;
+	case GAME_STAGE_2:
+			MY_QUIZ2_PROC();	//クイズ画面2の処理
+			MY_QUIZ2_DRAW();	//クイズ画面2の描画
+			break;
+	case GAME_STAGE_3:
+			MY_QUIZ3_PROC();	//クイズ画面3の処理
+			MY_QUIZ3_DRAW();	//クイズ画面3の描画
+			break;
+	case GAME_STAGE_4:
+			MY_QUIZ4_PROC();	//クイズ画面4の処理
+			MY_QUIZ4_DRAW();	//クイズ画面4の描画
+			break;
+	}
 	return;
 }
 
-//クイズ画面の処理
-VOID MY_QUIZ_PROC(VOID)
+//クイズ画面1の処理
+VOID MY_QUIZ1_PROC(VOID)
 {
 	//QuizflagがFALSEの場合
 	if (Quizflag == FALSE)
@@ -784,8 +808,8 @@ VOID MY_QUIZ_PROC(VOID)
 	return;
 }
 
-//クイズ画面の描画
-VOID MY_QUIZ_DRAW(VOID)
+//クイズ画面1の描画
+VOID MY_QUIZ1_DRAW(VOID)
 {
 	MY_PLAY_DRAW();	//プレイ画面を描画
 
@@ -795,6 +819,174 @@ VOID MY_QUIZ_DRAW(VOID)
 		ImageQuestion1.rate,						//画像の拡大率
 		ImageQuestion1.angle,						//画像の回転率
 		ImageQuestion1.handle, TRUE					//画像のハンドル
+	);
+
+	return;
+}
+
+//クイズ画面2の処理
+VOID MY_QUIZ2_PROC(VOID)
+{
+	//QuizflagがFALSEの場合
+	if (Quizflag == FALSE)
+	{
+		//クイズを拡大
+		if (ImageQuestion2.rate < ImageQuestion2.rateMAX)
+		{
+			ImageQuestion2.rate += IMAGE_QUIZ_ROTA;
+		}
+	}
+
+	//エンターキーを押したら、QuizflagをTRUEにする
+	if (MY_KEY_DOWN(KEY_INPUT_RETURN) == TRUE)
+	{
+		Quizflag = TRUE;
+
+	}
+
+	//QuizflagがTRUEの場合
+	if (Quizflag == TRUE)
+	{
+		//クイズを拡小
+		if (ImageQuestion2.rate > 0)
+		{
+			ImageQuestion2.rate -= IMAGE_QUIZ_ROTA;
+		}
+
+		//画像が消えたらプレイ画面へ
+		else
+		{
+			//ゲームのシーンをプレイ画面にする
+			GameScene = GAME_SCENE_PLAY;
+		}
+	}
+
+	return;
+}
+
+//クイズ画面2の描画
+VOID MY_QUIZ2_DRAW(VOID)
+{
+	MY_PLAY_DRAW();	//プレイ画面を描画
+
+	//クイズを拡大しながら描画
+	DrawRotaGraph(
+		ImageQuestion2.x, ImageQuestion2.y,			//画像の座標
+		ImageQuestion2.rate,						//画像の拡大率
+		ImageQuestion2.angle,						//画像の回転率
+		ImageQuestion2.handle, TRUE					//画像のハンドル
+	);
+
+	return;
+}
+
+//クイズ画面3の処理
+VOID MY_QUIZ3_PROC(VOID)
+{
+	//QuizflagがFALSEの場合
+	if (Quizflag == FALSE)
+	{
+		//クイズを拡大
+		if (ImageQuestion3.rate < ImageQuestion3.rateMAX)
+		{
+			ImageQuestion3.rate += IMAGE_QUIZ_ROTA;
+		}
+	}
+
+	//エンターキーを押したら、QuizflagをTRUEにする
+	if (MY_KEY_DOWN(KEY_INPUT_RETURN) == TRUE)
+	{
+		Quizflag = TRUE;
+
+	}
+
+	//QuizflagがTRUEの場合
+	if (Quizflag == TRUE)
+	{
+		//クイズを拡小
+		if (ImageQuestion3.rate > 0)
+		{
+			ImageQuestion3.rate -= IMAGE_QUIZ_ROTA;
+		}
+
+		//画像が消えたらプレイ画面へ
+		else
+		{
+			//ゲームのシーンをプレイ画面にする
+			GameScene = GAME_SCENE_PLAY;
+		}
+	}
+
+	return;
+}
+
+//クイズ画面3の描画
+VOID MY_QUIZ3_DRAW(VOID)
+{
+	MY_PLAY_DRAW();	//プレイ画面を描画
+
+	//クイズを拡大しながら描画
+	DrawRotaGraph(
+		ImageQuestion3.x, ImageQuestion3.y,			//画像の座標
+		ImageQuestion3.rate,						//画像の拡大率
+		ImageQuestion3.angle,						//画像の回転率
+		ImageQuestion3.handle, TRUE					//画像のハンドル
+	);
+
+	return;
+}
+
+//クイズ画面4の処理
+VOID MY_QUIZ4_PROC(VOID)
+{
+	//QuizflagがFALSEの場合
+	if (Quizflag == FALSE)
+	{
+		//クイズを拡大
+		if (ImageQuestion4.rate < ImageQuestion4.rateMAX)
+		{
+			ImageQuestion4.rate += IMAGE_QUIZ_ROTA;
+		}
+	}
+
+	//エンターキーを押したら、QuizflagをTRUEにする
+	if (MY_KEY_DOWN(KEY_INPUT_RETURN) == TRUE)
+	{
+		Quizflag = TRUE;
+
+	}
+
+	//QuizflagがTRUEの場合
+	if (Quizflag == TRUE)
+	{
+		//クイズを拡小
+		if (ImageQuestion4.rate > 0)
+		{
+			ImageQuestion4.rate -= IMAGE_QUIZ_ROTA;
+		}
+
+		//画像が消えたらプレイ画面へ
+		else
+		{
+			//ゲームのシーンをプレイ画面にする
+			GameScene = GAME_SCENE_PLAY;
+		}
+	}
+
+	return;
+}
+
+//クイズ画面4の描画
+VOID MY_QUIZ4_DRAW(VOID)
+{
+	MY_PLAY_DRAW();	//プレイ画面を描画
+
+	//クイズを拡大しながら描画
+	DrawRotaGraph(
+		ImageQuestion4.x, ImageQuestion4.y,			//画像の座標
+		ImageQuestion4.rate,						//画像の拡大率
+		ImageQuestion4.angle,						//画像の回転率
+		ImageQuestion4.handle, TRUE					//画像のハンドル
 	);
 
 	return;
@@ -1169,6 +1361,15 @@ VOID MY_PLAY_PROC(VOID)
 
 	}
 
+	//Pキーでポーズ、クイズ確認
+	if (CheckHitKey(KEY_INPUT_P) == TRUE)
+	{
+		Quizflag = FALSE;
+
+		//ゲームのシーンをエンド画面にする
+		GameScene = GAME_SCENE_QUIZ;
+	}
+
 	return;
 
 }
@@ -1196,45 +1397,45 @@ VOID MY_PLAY_DRAW(VOID)
 		}
 	}
 
-	//当たり判定の描画（デバッグ用）
-	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
-	{
-		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
-		{
-			//ブロックならば
-			if (map[tate][yoko].kind == b || map[tate][yoko].kind == a)
-			{
-				DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(0, 0, 255), FALSE);
-			}
+	////当たり判定の描画（デバッグ用）
+	//for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
+	//{
+	//	for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
+	//	{
+	//		//ブロックならば
+	//		if (map[tate][yoko].kind == b || map[tate][yoko].kind == a)
+	//		{
+	//			DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(0, 0, 255), FALSE);
+	//		}
 
-			//通路ならば
-			if (map[tate][yoko].kind == t)
-			{
-				DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 255, 0), FALSE);
-			}
+	//		//通路ならば
+	//		if (map[tate][yoko].kind == t)
+	//		{
+	//			DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 255, 0), FALSE);
+	//		}
 
-			//ゴールならば
-			if (map[tate][yoko].kind == g)
-			{
-				DrawBox(goalColl[tate][yoko].left, goalColl[tate][yoko].top, goalColl[tate][yoko].right, goalColl[tate][yoko].bottom, GetColor(0, 255, 0), FALSE);
-			}
+	//		//ゴールならば
+	//		if (map[tate][yoko].kind == g)
+	//		{
+	//			DrawBox(goalColl[tate][yoko].left, goalColl[tate][yoko].top, goalColl[tate][yoko].right, goalColl[tate][yoko].bottom, GetColor(0, 255, 0), FALSE);
+	//		}
 
-			//スターならば
-			if (map[tate][yoko].kind == h1 || map[tate][yoko].kind == h2 || map[tate][yoko].kind == h3)
-			{
-				DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 0, 255), FALSE);
-			}
+	//		//スターならば
+	//		if (map[tate][yoko].kind == h1 || map[tate][yoko].kind == h2 || map[tate][yoko].kind == h3)
+	//		{
+	//			DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 0, 255), FALSE);
+	//		}
 
-			//トゲならば
-			if (map[tate][yoko].kind == n || map[tate][yoko].kind == m)
-			{
-				DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 150, 0), FALSE);
-			}
-		}
-	}
+	//		//トゲならば
+	//		if (map[tate][yoko].kind == n || map[tate][yoko].kind == m)
+	//		{
+	//			DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 150, 0), FALSE);
+	//		}
+	//	}
+	//}
 
-	//プレーヤー当たり判定の描画（デバッグ用）
-	DrawBox(player.coll.left, player.coll.top, player.coll.right, player.coll.bottom, GetColor(255, 0, 0), FALSE);
+	////プレーヤー当たり判定の描画（デバッグ用）
+	//DrawBox(player.coll.left, player.coll.top, player.coll.right, player.coll.bottom, GetColor(255, 0, 0), FALSE);
 
 	return;
 }
@@ -1494,7 +1695,7 @@ BOOL MY_LOAD_IMAGE(VOID)
 	ImageEnter.x = GAME_WIDTH / 2 - ImageEnter.width / 2;					//左右中央揃え
 	ImageEnter.y = GAME_HEIGHT / 2 + ImageEnter.height + 30;				//上下中央揃え
 
-	//クイズ背景
+	//クイズ1
 	strcpy_s(ImageQuestion1.path, IMG_QUESTION_1);				//パスの設定
 	ImageQuestion1.handle = LoadGraph(ImageQuestion1.path);	//読み込み
 	if (ImageQuestion1.handle == -1)
@@ -1510,6 +1711,57 @@ BOOL MY_LOAD_IMAGE(VOID)
 	ImageQuestion1.angleMAX = DX_PI * 2;				//回転率MAX
 	ImageQuestion1.rate = 0.1;							//拡大率
 	ImageQuestion1.rateMAX = IMAGE_QUIZ_ROTA_MAX;		//拡大率MAX
+
+	//クイズ2
+	strcpy_s(ImageQuestion2.path, IMG_QUESTION_2);				//パスの設定
+	ImageQuestion2.handle = LoadGraph(ImageQuestion2.path);	//読み込み
+	if (ImageQuestion2.handle == -1)
+	{
+		//エラーメッセージ表示
+		MessageBox(GetMainWindowHandle(), IMG_QUESTION_2, IMAGE_LOAD_ERR_TITLE, MB_OK);
+		return FALSE;
+	}
+	GetGraphSize(ImageQuestion2.handle, &ImageQuestion2.width, &ImageQuestion2.height);	//画像の幅と高さを取得
+	ImageQuestion2.x = GAME_WIDTH / 2;								//左右中央揃え
+	ImageQuestion2.y = GAME_HEIGHT / 2;								//上下中央揃え
+	ImageQuestion2.angle = DX_PI * 2;					//回転率
+	ImageQuestion2.angleMAX = DX_PI * 2;				//回転率MAX
+	ImageQuestion2.rate = 0.1;							//拡大率
+	ImageQuestion2.rateMAX = IMAGE_QUIZ_ROTA_MAX;		//拡大率MAX
+
+	//クイズ3
+	strcpy_s(ImageQuestion3.path, IMG_QUESTION_3);				//パスの設定
+	ImageQuestion3.handle = LoadGraph(ImageQuestion3.path);	//読み込み
+	if (ImageQuestion3.handle == -1)
+	{
+		//エラーメッセージ表示
+		MessageBox(GetMainWindowHandle(), IMG_QUESTION_3, IMAGE_LOAD_ERR_TITLE, MB_OK);
+		return FALSE;
+	}
+	GetGraphSize(ImageQuestion3.handle, &ImageQuestion3.width, &ImageQuestion3.height);	//画像の幅と高さを取得
+	ImageQuestion3.x = GAME_WIDTH / 2;								//左右中央揃え
+	ImageQuestion3.y = GAME_HEIGHT / 2;								//上下中央揃え
+	ImageQuestion3.angle = DX_PI * 2;					//回転率
+	ImageQuestion3.angleMAX = DX_PI * 2;				//回転率MAX
+	ImageQuestion3.rate = 0.1;							//拡大率
+	ImageQuestion3.rateMAX = IMAGE_QUIZ_ROTA_MAX;		//拡大率MAX
+
+	//クイズ4
+	strcpy_s(ImageQuestion4.path, IMG_QUESTION_4);				//パスの設定
+	ImageQuestion4.handle = LoadGraph(ImageQuestion4.path);	//読み込み
+	if (ImageQuestion4.handle == -1)
+	{
+		//エラーメッセージ表示
+		MessageBox(GetMainWindowHandle(), IMG_QUESTION_4, IMAGE_LOAD_ERR_TITLE, MB_OK);
+		return FALSE;
+	}
+	GetGraphSize(ImageQuestion4.handle, &ImageQuestion4.width, &ImageQuestion4.height);	//画像の幅と高さを取得
+	ImageQuestion4.x = GAME_WIDTH / 2;								//左右中央揃え
+	ImageQuestion4.y = GAME_HEIGHT / 2;								//上下中央揃え
+	ImageQuestion4.angle = DX_PI * 2;					//回転率
+	ImageQuestion4.angleMAX = DX_PI * 2;				//回転率MAX
+	ImageQuestion4.rate = 0.1;							//拡大率
+	ImageQuestion4.rateMAX = IMAGE_QUIZ_ROTA_MAX;		//拡大率MAX
 
 	//プレイヤーの画像
 	strcpy_s(player.image.path, IMG_MARU);				//パスの設定
