@@ -53,8 +53,10 @@
 #define IMG_LOGO				TEXT(".\\IMAGE\\ParQuiz.png")			//ロゴの画像
 #define IMG_LOGO_CLEAR			TEXT(".\\IMAGE\\logo_end.png")			//クリアの画像
 #define IMG_LOGO_OVER			TEXT(".\\IMAGE\\logo_end2.png")			//ゲームオーバーの画像
-#define IMG_SPACE				TEXT(".\\IMAGE\\pressofspace.png")		//PRESS OF SPACEKEYの画像
-#define IMG_ENTER				TEXT(".\\IMAGE\\pressofenter.png")		//PRESS OF ENTERの画像
+#define IMG_SPACE				TEXT(".\\IMAGE\\playtospacekey.png")	//PLAY TO SPACEKEYの画像
+#define IMG_SPACE2				TEXT(".\\IMAGE\\retrytospacekey.png")	//RETRY TO SPACEKEYの画像
+#define IMG_SPACE3				TEXT(".\\IMAGE\\nexttospacekey.png")	//NEXT TO SPACEKEYの画像
+#define IMG_ENTER				TEXT(".\\IMAGE\\titletoenterkey.png")	//TITLE TO ENTERの画像
 #define IMG_QUESTION_1			TEXT(".\\IMAGE\\Question1.png")			//クイズ1の画像
 #define IMG_QUESTION_2			TEXT(".\\IMAGE\\Question2.png")			//クイズ2の画像
 #define IMG_QUESTION_3			TEXT(".\\IMAGE\\Question3.png")			//クイズ3の画像
@@ -252,7 +254,7 @@ int Togeflag = TRUE;			//動くトゲの切り返しのフラグ(TRUEのときは右に動く)
 int TogeMove = 0;				//トゲが動いた距離を測る変数
 int Cntm = 0;					//動くトゲのカウンター(トゲが増えるほど増えていく)
 int Clearflag = TRUE;			//クリアしたかどうかのフラグ(プレイ画面の初期化に使用)
-int Quizflag = FALSE;			//クイズが表示されているかどうかのフラグ
+int Quizflag = TRUE;			//クイズが表示されているかどうかのフラグ
 int Mapflag = TRUE;				//マップを変えるためのフラグ
 
 int Map1Answer = 2;				//マップ1の答え = 2
@@ -270,8 +272,10 @@ IMAGE ImageQuestion2;			//クイズ２の画像
 IMAGE ImageQuestion3;			//クイズ３の画像
 IMAGE ImageQuestion4;			//クイズ４の画像
 
-IMAGE ImageSpace;				//スペースキーを押してください
-IMAGE ImageEnter;				//エンターキーを押してください
+IMAGE ImageSpace;				//スペースキーでプレイ画面
+IMAGE ImageSpace2;				//スペースキーでリトライ
+IMAGE ImageSpace3;				//スペースキーで次のステージ
+IMAGE ImageEnter;				//エンターキーでタイトル画面
 
 CHARA player;					//ゲームのキャラ
 
@@ -292,7 +296,7 @@ GAME_MAP_KIND mapData1[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
 		n,t,t,g,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,n,	// 2
 		n,t,t,b,n,n,t,t,n,t,t,t,t,n,t,t,t,t,t,n,	// 3
 		n,t,t,t,t,t,t,t,n,t,t,t,t,n,t,t,t,t,t,n,	// 4
-		n,h2,t,t,t,t,t,t,t,b,t,t,t,t,t,t,t,t,t,n,	// 5
+		n,h3,t,t,t,t,t,t,t,b,t,t,t,t,t,t,t,t,t,n,	// 5
 		n,b,t,t,t,t,t,t,t,t,t,n,t,h1,t,t,t,t,t,n,	// 6
 		n,t,t,t,t,b,t,t,t,t,b,t,t,b,t,t,t,t,t,n,	// 7
 		n,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,n,h2,n,	// 8
@@ -306,13 +310,13 @@ GAME_MAP_KIND mapData2[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
 		b,t,t,t,t,t,t,t,t,t,t,t,t,n,n,n,t,t,g,n,	// 1
 		b,b,t,t,t,t,b,b,n,b,t,t,t,n,n,n,t,t,b,n,	// 2
 		b,t,t,t,t,t,t,t,t,t,n,t,t,n,n,n,t,t,t,n,	// 3
-		b,t,t,t,t,t,h3,t,t,t,n,t,t,n,n,n,b,t,t,n,	// 4
-		b,b,h2,t,t,t,t,t,t,t,n,t,t,n,n,n,t,t,t,n,	// 5
-		b,g,t,t,t,t,t,t,t,t,n,t,t,n,n,n,t,t,b,n,	// 6
-		b,t,t,s,t,t,t,t,t,t,n,t,t,t,t,t,t,t,t,n,	// 7
-		b,t,t,b,t,t,t,t,t,b,t,t,t,t,t,t,t,b,t,n,	// 8
-		b,t,t,b,t,t,h1,t,t,b,t,t,t,t,t,t,t,t,t,n,	// 9
-		b,b,b,b,n,n,n,n,n,b,b,n,n,n,n,b,n,n,n,n,	// 10
+		b,t,t,t,t,t,t,t,t,t,n,t,t,n,n,n,b,t,t,n,	// 4
+		b,b,t,t,t,t,t,t,t,t,n,t,t,n,n,n,t,t,t,n,	// 5
+		b,t,t,t,t,t,t,t,t,t,n,t,t,n,n,n,t,t,b,n,	// 6
+		b,t,t,t,t,t,t,n,h1,n,t,t,t,t,t,t,t,t,t,n,	// 7
+		b,t,t,b,t,t,t,n,b,t,t,t,t,t,t,t,t,b,t,n,	// 8
+		b,s,t,b,t,t,h2,n,b,h3,t,t,t,t,t,t,t,t,t,n,	// 9
+		b,b,b,b,n,n,n,n,n,b,n,n,n,n,n,b,n,n,n,n,	// 10
 };	//ステージ２のマップ
 
 GAME_MAP_KIND mapData3[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
@@ -320,10 +324,10 @@ GAME_MAP_KIND mapData3[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
 		b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,	// 0
 		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 1
 		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 2
-		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 3
+		b,t,t,t,t,m,t,t,t,t,t,t,t,t,m,t,t,t,t,b,	// 3
 		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 4
 		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 5
-		b,s,t,t,h2,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 6
+		b,s,t,t,h1,t,t,t,t,h2,t,t,t,t,h3,t,t,t,t,b,	// 6
 		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 7
 		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 8
 		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,g,b,	// 9
@@ -451,6 +455,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	SetDrawScreen(DX_SCREEN_BACK);	//Draw系関数は裏画面に描画
 
+	ChangeFontType(DX_FONTTYPE_ANTIALIASING_8X8);	//文字にアンチエイリアスをかける
+
 	//無限ループ
 	while (TRUE)
 	{
@@ -491,6 +497,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		ScreenFlip();		//モニタのリフレッシュレートの速さで裏画面を再描画
 
 		MY_FPS_WAIT();		//FPSの処理[待つ]
+
 	}
 
 	//フォントハンドルを破棄
@@ -681,7 +688,8 @@ VOID MY_START(VOID)
 //スタート画面の処理
 VOID MY_START_PROC(VOID)
 {
-	Quizflag = FALSE;
+	//QuizflagをTRUE
+	Quizflag = TRUE;
 
 	//BGMが流れていないなら
 	if (CheckSoundMem(BGM_START.handle) == 0)
@@ -737,7 +745,7 @@ VOID MY_START_DRAW(VOID)
 	//タイトル背景を描画する
 	DrawGraph(ImageTitleROGO.x, ImageTitleROGO.y, ImageTitleROGO.handle, TRUE);
 
-	//PRESS OF SPACEKEYを描画する
+	//PLAY TO SPACEKEYを描画する
 	DrawGraph(ImageSpace.x, ImageSpace.y, ImageSpace.handle, TRUE);	//PRESS OF SPACEKEYの描画
 
 	return;
@@ -746,6 +754,7 @@ VOID MY_START_DRAW(VOID)
 //クイズ画面
 VOID MY_QUIZ(VOID)
 {
+
 	switch (GameStage)
 	{
 	case GAME_STAGE_1:
@@ -771,8 +780,9 @@ VOID MY_QUIZ(VOID)
 //クイズ画面1の処理
 VOID MY_QUIZ1_PROC(VOID)
 {
-	//QuizflagがFALSEの場合
-	if (Quizflag == FALSE)
+
+	//QuizflagがTRUEの場合
+	if (Quizflag == TRUE)
 	{
 		//クイズを拡大
 		if (ImageQuestion1.rate < ImageQuestion1.rateMAX)
@@ -784,12 +794,12 @@ VOID MY_QUIZ1_PROC(VOID)
 	//エンターキーを押したら、QuizflagをTRUEにする
 	if (MY_KEY_DOWN(KEY_INPUT_RETURN) == TRUE)
 	{	
-		Quizflag = TRUE;
+		Quizflag = FALSE;
 
 	}
 
 	//QuizflagがTRUEの場合
-	if (Quizflag == TRUE)
+	if (Quizflag == FALSE)
 	{
 		//クイズを拡小
 		if (ImageQuestion1.rate > 0)
@@ -813,6 +823,7 @@ VOID MY_QUIZ1_DRAW(VOID)
 {
 	MY_PLAY_DRAW();	//プレイ画面を描画
 
+
 	//クイズを拡大しながら描画
 	DrawRotaGraph(
 		ImageQuestion1.x, ImageQuestion1.y,			//画像の座標
@@ -821,6 +832,9 @@ VOID MY_QUIZ1_DRAW(VOID)
 		ImageQuestion1.handle, TRUE					//画像のハンドル
 	);
 
+	// 文字列の描画
+	DrawString(900, 50, "エンターキーでスタート！", GetColor(255, 255, 0));
+
 	return;
 }
 
@@ -828,7 +842,7 @@ VOID MY_QUIZ1_DRAW(VOID)
 VOID MY_QUIZ2_PROC(VOID)
 {
 	//QuizflagがFALSEの場合
-	if (Quizflag == FALSE)
+	if (Quizflag == TRUE)
 	{
 		//クイズを拡大
 		if (ImageQuestion2.rate < ImageQuestion2.rateMAX)
@@ -840,12 +854,12 @@ VOID MY_QUIZ2_PROC(VOID)
 	//エンターキーを押したら、QuizflagをTRUEにする
 	if (MY_KEY_DOWN(KEY_INPUT_RETURN) == TRUE)
 	{
-		Quizflag = TRUE;
+		Quizflag = FALSE;
 
 	}
 
 	//QuizflagがTRUEの場合
-	if (Quizflag == TRUE)
+	if (Quizflag == FALSE)
 	{
 		//クイズを拡小
 		if (ImageQuestion2.rate > 0)
@@ -877,6 +891,9 @@ VOID MY_QUIZ2_DRAW(VOID)
 		ImageQuestion2.handle, TRUE					//画像のハンドル
 	);
 
+	// 文字列の描画
+	DrawString(900, 50, "エンターキーでスタート！", GetColor(255, 255, 0));
+
 	return;
 }
 
@@ -884,7 +901,7 @@ VOID MY_QUIZ2_DRAW(VOID)
 VOID MY_QUIZ3_PROC(VOID)
 {
 	//QuizflagがFALSEの場合
-	if (Quizflag == FALSE)
+	if (Quizflag == TRUE)
 	{
 		//クイズを拡大
 		if (ImageQuestion3.rate < ImageQuestion3.rateMAX)
@@ -896,12 +913,12 @@ VOID MY_QUIZ3_PROC(VOID)
 	//エンターキーを押したら、QuizflagをTRUEにする
 	if (MY_KEY_DOWN(KEY_INPUT_RETURN) == TRUE)
 	{
-		Quizflag = TRUE;
+		Quizflag = FALSE;
 
 	}
 
 	//QuizflagがTRUEの場合
-	if (Quizflag == TRUE)
+	if (Quizflag == FALSE)
 	{
 		//クイズを拡小
 		if (ImageQuestion3.rate > 0)
@@ -933,6 +950,9 @@ VOID MY_QUIZ3_DRAW(VOID)
 		ImageQuestion3.handle, TRUE					//画像のハンドル
 	);
 
+	// 文字列の描画
+	DrawString(900, 50, "エンターキーでスタート！", GetColor(255, 255, 0));
+
 	return;
 }
 
@@ -940,7 +960,7 @@ VOID MY_QUIZ3_DRAW(VOID)
 VOID MY_QUIZ4_PROC(VOID)
 {
 	//QuizflagがFALSEの場合
-	if (Quizflag == FALSE)
+	if (Quizflag == TRUE)
 	{
 		//クイズを拡大
 		if (ImageQuestion4.rate < ImageQuestion4.rateMAX)
@@ -952,12 +972,12 @@ VOID MY_QUIZ4_PROC(VOID)
 	//エンターキーを押したら、QuizflagをTRUEにする
 	if (MY_KEY_DOWN(KEY_INPUT_RETURN) == TRUE)
 	{
-		Quizflag = TRUE;
+		Quizflag = FALSE;
 
 	}
 
 	//QuizflagがTRUEの場合
-	if (Quizflag == TRUE)
+	if (Quizflag == FALSE)
 	{
 		//クイズを拡小
 		if (ImageQuestion4.rate > 0)
@@ -988,6 +1008,9 @@ VOID MY_QUIZ4_DRAW(VOID)
 		ImageQuestion4.angle,						//画像の回転率
 		ImageQuestion4.handle, TRUE					//画像のハンドル
 	);
+
+	// 文字列の描画
+	DrawString(900, 50, "エンターキーでスタート！", GetColor(255, 255, 0));
 
 	return;
 }
@@ -1364,10 +1387,14 @@ VOID MY_PLAY_PROC(VOID)
 	//Pキーでポーズ、クイズ確認
 	if (CheckHitKey(KEY_INPUT_P) == TRUE)
 	{
-		Quizflag = FALSE;
+		Quizflag = TRUE;
 
-		//ゲームのシーンをエンド画面にする
+		//ゲームのシーンをクイズ画面にする
 		GameScene = GAME_SCENE_QUIZ;
+
+		// 文字列の描画
+		DrawString(0, 0, "P", GetColor(255, 0, 0));
+
 	}
 
 	return;
@@ -1437,6 +1464,41 @@ VOID MY_PLAY_DRAW(VOID)
 	////プレーヤー当たり判定の描画（デバッグ用）
 	//DrawBox(player.coll.left, player.coll.top, player.coll.right, player.coll.bottom, GetColor(255, 0, 0), FALSE);
 
+	// 文字列の描画
+	DrawString(1000, 0, "Pキーでクイズ確認、ポーズ", GetColor(255, 0, 0));
+
+	//Aキーを押すとAを表示
+	if (CheckHitKey(KEY_INPUT_A) == TRUE)
+	{
+		// 文字列の描画
+		DrawString(0, 0, "A", GetColor(255, 0, 0));
+
+	}
+
+	//Dキーを押すとDを表示
+	if (CheckHitKey(KEY_INPUT_D) == TRUE)
+	{
+		// 文字列の描画
+		DrawString(0, 0, "D", GetColor(255, 0, 0));
+
+	}
+
+	//Wキーを押すとWを表示
+	if (CheckHitKey(KEY_INPUT_W) == TRUE)
+	{
+		// 文字列の描画
+		DrawString(0, 0, "W", GetColor(255, 0, 0));
+
+	}
+
+	//Pキーを押すとPを表示
+	if (CheckHitKey(KEY_INPUT_P) == TRUE)
+	{
+		// 文字列の描画
+		DrawString(0, 0, "P", GetColor(255, 0, 0));
+
+	}
+
 	return;
 }
 
@@ -1458,6 +1520,7 @@ VOID MY_END_PROC(VOID)
 		//ゲームクリアのとき
 
 		Clearflag = TRUE;	//クリアフラグをTRUEにする
+		Quizflag = TRUE;	//クイズフラグをTRUEにする(次のステージに初めて行ったときクイズを見せる)
 
 		//MapflagがTRUEのとき
 		if (Mapflag == TRUE)
@@ -1567,7 +1630,7 @@ VOID MY_END_PROC(VOID)
 		}
 
 		//プレイ画面にする
-		GameScene = GAME_SCENE_PLAY;
+		GameScene = GAME_SCENE_QUIZ;
 
 	}
 
@@ -1587,6 +1650,7 @@ VOID MY_END_DRAW(VOID)
 
 		//ゲームクリアの描画
 		DrawGraph(ImageTitleCLEAR.x, ImageTitleCLEAR.y, ImageTitleCLEAR.handle, TRUE);
+		DrawGraph(ImageSpace3.x, ImageSpace3.y, ImageSpace3.handle, TRUE);	//NEXT TO SPACEKEYの描画
 		break;
 
 	case GAME_END_OVER:
@@ -1594,10 +1658,12 @@ VOID MY_END_DRAW(VOID)
 
 		//ゲームオーバーの描画
 		DrawGraph(ImageTitleOVER.x, ImageTitleOVER.y, ImageTitleOVER.handle, TRUE);
+		DrawGraph(ImageSpace2.x, ImageSpace2.y, ImageSpace2.handle, TRUE);	//PLAY TO SPACEKEYの描画
 		break;
 	}
 
-	DrawGraph(ImageEnter.x, ImageEnter.y, ImageEnter.handle, TRUE);	//PRESS OF ENTERKEYの描画
+	DrawGraph(ImageEnter.x, ImageEnter.y, ImageEnter.handle, TRUE);	//TITLE TO ENTERKEYの描画
+
 	return;
 }
 
@@ -1669,7 +1735,7 @@ BOOL MY_LOAD_IMAGE(VOID)
 	ImageTitleOVER.x = GAME_WIDTH / 2 - ImageTitleOVER.width / 2;						//左右中央揃え
 	ImageTitleOVER.y = GAME_HEIGHT / 2 - ImageTitleOVER.height / 2;						//上下中央揃え
 
-	//PRESS OF SPACEKEY!!!の画像
+	//PLAY TO SPACEKEY!の画像
 	strcpy_s(ImageSpace.path, IMG_SPACE);			//パスの設定
 	ImageSpace.handle = LoadGraph(ImageSpace.path);	//読み込み
 	if (ImageSpace.handle == -1)
@@ -1680,9 +1746,35 @@ BOOL MY_LOAD_IMAGE(VOID)
 	}
 	GetGraphSize(ImageSpace.handle, &ImageSpace.width, &ImageSpace.height);	//画像の幅と高さを取得
 	ImageSpace.x = GAME_WIDTH / 2 - ImageSpace.width / 2;					//左右中央揃え
-	ImageSpace.y = GAME_HEIGHT / 2 + ImageSpace.height + 30;				//上下中央揃え
+	ImageSpace.y = GAME_HEIGHT / 2 + ImageSpace.height + 100;				//上下中央揃え
 
-	//PRESS OF ENTERKEY!!!の画像
+	//RETRY TO SPACEKEY!の画像
+	strcpy_s(ImageSpace2.path, IMG_SPACE2);			//パスの設定
+	ImageSpace2.handle = LoadGraph(ImageSpace2.path);	//読み込み
+	if (ImageSpace2.handle == -1)
+	{
+		//エラーメッセージ表示
+		MessageBox(GetMainWindowHandle(), IMG_SPACE2, IMAGE_LOAD_ERR_TITLE, MB_OK);
+		return FALSE;
+	}
+	GetGraphSize(ImageSpace2.handle, &ImageSpace2.width, &ImageSpace2.height);	//画像の幅と高さを取得
+	ImageSpace2.x = GAME_WIDTH / 2 - ImageSpace2.width / 2;					//左右中央揃え
+	ImageSpace2.y = GAME_HEIGHT / 2 + ImageSpace2.height + 30;				//上下中央揃え
+
+	//NEXT TO SPACEKEY!の画像
+	strcpy_s(ImageSpace3.path, IMG_SPACE3);			//パスの設定
+	ImageSpace3.handle = LoadGraph(ImageSpace3.path);	//読み込み
+	if (ImageSpace3.handle == -1)
+	{
+		//エラーメッセージ表示
+		MessageBox(GetMainWindowHandle(), IMG_SPACE3, IMAGE_LOAD_ERR_TITLE, MB_OK);
+		return FALSE;
+	}
+	GetGraphSize(ImageSpace3.handle, &ImageSpace3.width, &ImageSpace3.height);	//画像の幅と高さを取得
+	ImageSpace3.x = GAME_WIDTH / 2 - ImageSpace3.width / 2;					//左右中央揃え
+	ImageSpace3.y = GAME_HEIGHT / 2 + ImageSpace3.height + 30;				//上下中央揃え
+
+	//TITLE TO ENTERKEY!!!の画像
 	strcpy_s(ImageEnter.path, IMG_ENTER);			//パスの設定
 	ImageEnter.handle = LoadGraph(ImageEnter.path);	//読み込み
 	if (ImageEnter.handle == -1)
@@ -1693,7 +1785,7 @@ BOOL MY_LOAD_IMAGE(VOID)
 	}
 	GetGraphSize(ImageEnter.handle, &ImageEnter.width, &ImageEnter.height);	//画像の幅と高さを取得
 	ImageEnter.x = GAME_WIDTH / 2 - ImageEnter.width / 2;					//左右中央揃え
-	ImageEnter.y = GAME_HEIGHT / 2 + ImageEnter.height + 30;				//上下中央揃え
+	ImageEnter.y = GAME_HEIGHT / 2 + ImageEnter.height + 80;				//上下中央揃え
 
 	//クイズ1
 	strcpy_s(ImageQuestion1.path, IMG_QUESTION_1);				//パスの設定
@@ -2068,6 +2160,10 @@ VOID PLAYER_MOVE(VOID)
 		JumpPower = 13;			//約1ブロック分のジャンプ
 		Jumpflag = FALSE;		//ジャンプフラグをFALSEにする
 		WKeyflag = TRUE;		//WキーフラグをTRUEにする
+
+		// 文字列の描画
+		DrawString(0, 0, "W", GetColor(255, 0, 0));
+
 	}
 
 	//二段ジャンプフラグがTRUEでWキーを押していたら空中ジャンプ
@@ -2080,6 +2176,10 @@ VOID PLAYER_MOVE(VOID)
 		JumpPower = 13;			//２ブロック分のジャンプ
 		WJumpflag = FALSE;		//二段ジャンプフラグをFALSEにする
 		WKeyflag = FALSE;		//WキーフラグをFALSEにする
+
+		// 文字列の描画
+		DrawString(0, 0, "W", GetColor(255, 0, 0));
+
 	}
 
 	//Wキーを離してプレイヤーが地面につくと
@@ -2106,6 +2206,10 @@ VOID PLAYER_MOVE(VOID)
 	{
 		player.image.x += player.speed;
 		player.CenterX += player.speed;
+
+		// 文字列の描画
+		DrawString(0,0, "D", GetColor(255, 0, 0));
+
 	}
 
 	//Aキーで左へ進む
@@ -2113,6 +2217,10 @@ VOID PLAYER_MOVE(VOID)
 	{
 		player.image.x -= player.speed;
 		player.CenterX -= player.speed;
+
+		// 文字列の描画
+		DrawString(0, 0, "A", GetColor(255, 0, 0));
+
 	}
 
 }
