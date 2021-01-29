@@ -53,10 +53,10 @@
 #define IMG_LOGO				TEXT(".\\IMAGE\\ParQuiz.png")			//ロゴの画像
 #define IMG_LOGO_CLEAR			TEXT(".\\IMAGE\\logo_end.png")			//クリアの画像
 #define IMG_LOGO_OVER			TEXT(".\\IMAGE\\logo_end2.png")			//ゲームオーバーの画像
-#define IMG_SPACE				TEXT(".\\IMAGE\\playtospacekey.png")	//PLAY TO SPACEKEYの画像
-#define IMG_SPACE2				TEXT(".\\IMAGE\\retrytospacekey.png")	//RETRY TO SPACEKEYの画像
-#define IMG_SPACE3				TEXT(".\\IMAGE\\nexttospacekey.png")	//NEXT TO SPACEKEYの画像
-#define IMG_ENTER				TEXT(".\\IMAGE\\titletoenterkey.png")	//TITLE TO ENTERの画像
+#define IMG_SPACE				TEXT(".\\IMAGE\\key_playtospacekey.png")	//PLAY TO SPACEKEYの画像
+#define IMG_SPACE2				TEXT(".\\IMAGE\\key_retrytospacekey.png")	//RETRY TO SPACEKEYの画像
+#define IMG_SPACE3				TEXT(".\\IMAGE\\key_nexttospacekey.png")	//NEXT TO SPACEKEYの画像
+#define IMG_ENTER				TEXT(".\\IMAGE\\key_titletoenterkey.png")	//TITLE TO ENTERの画像
 #define IMG_QUESTION_1			TEXT(".\\IMAGE\\Question1.png")			//クイズ1の画像
 #define IMG_QUESTION_2			TEXT(".\\IMAGE\\Question2.png")			//クイズ2の画像
 #define IMG_QUESTION_3			TEXT(".\\IMAGE\\Question3.png")			//クイズ3の画像
@@ -66,7 +66,7 @@
 #define IMAGE_QUIZ_ROTA_MAX		1		//拡大率MAX
 #define IMAGE_QUIZ_X_SPEED		1		//X移動速度
 
-#define GAME_MAP_PATH			TEXT(".\\IMAGE\\mapchip1ver5.png")		//マップチップの画像
+#define GAME_MAP_PATH			TEXT(".\\IMAGE\\mapchip.png")		//マップチップの画像
 
 #define MAP_DIV_WIDTH		60	//画像を分割する幅サイズ
 #define MAP_DIV_HEIGHT		60	//画像を分割する高さサイズ
@@ -291,7 +291,7 @@ MUSIC BGM_STAR;					//スター取った時のSE
 
 GAME_MAP_KIND mapData1[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
 	//  0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9
-		b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,	// 0
+		n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,	// 0
 		n,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,n,	// 1
 		n,t,t,g,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,n,	// 2
 		n,t,t,b,n,n,t,t,n,t,t,t,t,n,t,t,t,t,t,n,	// 3
@@ -301,7 +301,7 @@ GAME_MAP_KIND mapData1[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
 		n,t,t,t,t,b,t,t,t,t,b,t,t,b,t,t,t,t,t,n,	// 7
 		n,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,n,h2,n,	// 8
 		n,s,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,n,n,	// 9
-		b,b,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,b,	// 0
+		n,b,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,	// 0
 };	//ステージ1のマップ
 
 GAME_MAP_KIND mapData2[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
@@ -324,13 +324,13 @@ GAME_MAP_KIND mapData3[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
 		b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,	// 0
 		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 1
 		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 2
-		b,t,t,t,t,m,t,t,t,t,t,t,t,t,m,t,t,t,t,b,	// 3
+		b,t,t,t,m,t,t,t,t,t,t,t,t,t,m,t,t,t,t,b,	// 3
 		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 4
 		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 5
-		b,s,t,t,h1,t,t,t,t,h2,t,t,t,t,h3,t,t,t,t,b,	// 6
+		b,t,t,t,h1,t,t,t,t,h2,t,t,t,t,h3,t,t,t,t,b,	// 6
 		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 7
 		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 8
-		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,g,b,	// 9
+		b,s,t,t,t,t,t,t,t,m,t,t,t,t,t,t,t,t,g,b,	// 9
 		b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,	// 10
 };	//ステージ３のマップ
 
@@ -341,19 +341,13 @@ GAME_MAP_KIND mapData4[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
 		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 2
 		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 3
 		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 4
-		b,t,t,t,t,t,t,t,t,s,t,t,t,t,t,t,t,t,t,b,	// 5
-		b,t,t,t,h3,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 6
+		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 5
+		b,t,t,t,h1,t,t,t,t,h2,t,t,t,t,h3,t,t,t,t,b,	// 6
 		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 7
 		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 8
-		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,g,t,t,b,	// 9
+		b,s,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,g,b,	// 9
 		b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,	// 10
 };	//ステージ４のマップ
-
-//ゲームマップの初期化
-GAME_MAP_KIND mapDataInit[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX];
-
-//ゲームマップ2の初期化
-GAME_MAP_KIND mapData2Init[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX];
 
 //マップチップの画像を管理
 MAPCHIP mapChip;
@@ -367,7 +361,7 @@ iPOINT startPt{ -1,-1 };
 //マップの当たり判定(基本)
 RECT mapColl[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX];
 
-//ゴールの当たり判定(分けたのは横幅が少し狭いため)
+//ゴールの当たり判定
 RECT goalColl[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX];
 
 //########## プロトタイプ宣言 ##########
@@ -1475,19 +1469,19 @@ VOID MY_PLAY_DRAW(VOID)
 
 	}
 
-	//Dキーを押すとDを表示
-	if (CheckHitKey(KEY_INPUT_D) == TRUE)
-	{
-		// 文字列の描画
-		DrawString(0, 0, "D", GetColor(255, 0, 0));
-
-	}
-
 	//Wキーを押すとWを表示
 	if (CheckHitKey(KEY_INPUT_W) == TRUE)
 	{
 		// 文字列の描画
-		DrawString(0, 0, "W", GetColor(255, 0, 0));
+		DrawString(8, 0, "W", GetColor(255, 0, 0));
+
+	}
+
+	//Dキーを押すとDを表示
+	if (CheckHitKey(KEY_INPUT_D) == TRUE)
+	{
+		// 文字列の描画
+		DrawString(16, 0, "D", GetColor(255, 0, 0));
 
 	}
 
@@ -1495,7 +1489,7 @@ VOID MY_PLAY_DRAW(VOID)
 	if (CheckHitKey(KEY_INPUT_P) == TRUE)
 	{
 		// 文字列の描画
-		DrawString(0, 0, "P", GetColor(255, 0, 0));
+		DrawString(24, 0, "P", GetColor(255, 0, 0));
 
 	}
 
