@@ -98,15 +98,16 @@ enum GAME_MAP_KIND
 	m3 = -3,	//星3を取った時m3に変換
 	b = 1,	//ブロック
 	g = 2,	//ゴール
-	d = 3,	//トゲ2(デンジャー)
+	//d = 3,	//トゲ2(デンジャー)
 	n = 4,	//トゲ(ニードル)
 	h1 = 5,	//星1
 	h2 = 6,	//星2
 	h3 = 7,	//星3
-	m = 8,	//トゲ(ムーブ)
-	a = 9,  //動くブロック
-	t = 10,	//通路
-	s = 11	//スタート
+	m = 8,	//動くトゲ
+	v = 9,	//縦に動くトゲ
+	a = 10,  //動くブロック
+	t = 11,	//通路
+	s = 12	//スタート
 };	//マップの種類
 
 enum GAME_SCENE {
@@ -248,11 +249,17 @@ int Jumpflag = TRUE;			//ジャンプフラグ(TRUEならジャンプできる)
 int WJumpflag = FALSE;			//２段ジャンプフラグ(TRUEなら二段ジャンプできる)
 int WKeyflag = FALSE;			//Wキーを離しているかどうかのフラグ(二段ジャンプのときに使う)
 int Answer = 0;					//取ったスターを入れる変数
+
 int Toge = TOGE_MOVE;			//トゲが動く距離
 int TogeSpeed = TOGE_SPEED;		//トゲのスピード
 int Togeflag = TRUE;			//動くトゲの切り返しのフラグ(TRUEのときは右に動く)	
 int TogeMove = 0;				//トゲが動いた距離を測る変数
 int Cntm = 0;					//動くトゲのカウンター(トゲが増えるほど増えていく)
+
+int Togeflag2 = TRUE;			//縦に動くトゲの切り返しのフラグ(TRUEのときは右に動く)	
+int TogeMove2 = 0;				//縦のトゲが動いた距離を測る変数
+int Cntm2 = 0;					//縦に動くトゲのカウンター(トゲが増えるほど増えていく)
+
 int Clearflag = TRUE;			//クリアしたかどうかのフラグ(プレイ画面の初期化に使用)
 int Quizflag = TRUE;			//クイズが表示されているかどうかのフラグ
 int Mapflag = TRUE;				//マップを変えるためのフラグ
@@ -325,9 +332,9 @@ GAME_MAP_KIND mapData3[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
 		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 4
 		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 5
 		b,t,t,t,h1,t,t,t,t,h2,t,t,t,t,h3,t,t,t,t,b,	// 6
-		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 7
+		b,t,t,t,t,t,t,t,v,t,t,t,t,t,t,t,t,t,t,b,	// 7
 		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 8
-		b,s,t,t,t,t,t,t,t,m,t,t,t,t,t,t,t,t,g,b,	// 9
+		b,g,s,t,t,t,t,t,t,m,t,t,t,t,t,t,t,t,g,b,	// 9
 		b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,	// 10
 };	//ステージ３のマップ
 
@@ -424,7 +431,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	if (DxLib_Init() == -1) { return -1; }	//ＤＸライブラリ初期化処理
 
-	GameStage = GAME_STAGE_1;		//ゲームステージはステージ1から
+	GameStage = GAME_STAGE_3;		//ゲームステージはステージ1から
 
 	GameScene = GAME_SCENE_START;	//ゲームシーンはスタート画面から
 
@@ -850,6 +857,7 @@ VOID MY_PLAY_INIT(VOID)
 {
 	//動くトゲカウンターを初期化(しないと多分どんどん増えてく)
 	Cntm = 0;
+	Cntm2 = 0;
 
 	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
 	{
@@ -904,6 +912,12 @@ VOID MY_PLAY_INIT(VOID)
 				Cntm++;
 			}
 
+			//そのマップにある縦に動くトゲをカウント
+			if (map[tate][yoko].kind == v)
+			{
+				Cntm2++;
+			}
+
 			//消えたスターを元に戻す
 			if (map[tate][yoko].kind == m1)
 			{
@@ -947,6 +961,8 @@ VOID MY_PLAY_INIT(VOID)
 	Answer = 0;			//持っている回答を消す
 	Togeflag = TRUE;	//トゲを右に動くようにする
 	TogeMove = 0;		//TogeMoveを初期化
+	Togeflag2 = TRUE;	//トゲを下に動くようにする
+	TogeMove2 = 0;		//TogeMove2を初期化
 	Mapflag = TRUE;
 	return;
 }
@@ -998,12 +1014,33 @@ VOID MY_PLAY_INIT_OVER(VOID)
 					mapColl[tate][yoko].right -= TogeMove / Cntm;
 				}
 			}
+			//縦に動くトゲの位置を初期化
+			if (map[tate][yoko].kind == v)
+			{
+
+				if (TogeMove2 < 0)
+				{
+					map[tate][yoko].y -= TogeMove2 / Cntm2;
+					mapColl[tate][yoko].top -= TogeMove2 / Cntm2;
+					mapColl[tate][yoko].bottom -= TogeMove2 / Cntm2;
+				}
+
+				if (TogeMove2 > 0)
+				{
+					map[tate][yoko].y -= TogeMove2 / Cntm2;
+					mapColl[tate][yoko].top -= TogeMove2 / Cntm2;
+					mapColl[tate][yoko].bottom -= TogeMove2 / Cntm2;
+				}
+			}
+
 		}
 	}
 
 	Answer = 0;			//持っている回答を消す
 	Togeflag = TRUE;	//トゲを右に動くようにする
 	TogeMove = 0;		//TogeMoveを初期化
+	Togeflag2 = TRUE;	//トゲを右に動くようにする
+	TogeMove2 = 0;		//TogeMoveを初期化
 
 	return;
 }
@@ -1146,8 +1183,50 @@ VOID MY_PLAY_PROC(VOID)
 		}
 	}
 
+	//縦に動くトゲの処理
+	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
+	{
+		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
+		{
+			if (map[tate][yoko].kind == v)
+			{
+				//Togeの数だけずれたらTogeflag2をFALSEにする
+				if (TogeMove2 == Toge * 60 * Cntm2)
+				{
+					Togeflag2 = FALSE;
+				}
+
+				//Togeの数だけずれたらTogeflag2をTRUEにする
+				if (TogeMove2 == Toge * -60 * Cntm2)
+				{
+					Togeflag2 = TRUE;
+				}
+
+				//Togeflag2がTRUEなら下に動く
+				if (Togeflag2 == TRUE)
+				{
+					map[tate][yoko].y += TogeSpeed;
+					mapColl[tate][yoko].top += TogeSpeed;
+					mapColl[tate][yoko].bottom += TogeSpeed;
+					TogeMove2 += TogeSpeed;
+				}
+
+				//Togeflag2がFALSEなら上に動く
+				if (Togeflag2 == FALSE)
+				{
+					map[tate][yoko].y -= TogeSpeed;
+					mapColl[tate][yoko].top -= TogeSpeed;
+					mapColl[tate][yoko].bottom -= TogeSpeed;
+					TogeMove2 -= TogeSpeed;
+				}
+			}
+		}
+	}
+
 	//プレイヤーとトゲがあたっていたらゲームオーバー画面に遷移
-	if (MY_CHECK_TOGE_PLAYER_COLL(player.coll) == 1 || MY_CHECK_TOGE_PLAYER_COLL(player.coll) == 2)
+	if (MY_CHECK_TOGE_PLAYER_COLL(player.coll) == 1 || 
+		MY_CHECK_TOGE_PLAYER_COLL(player.coll) == 2 ||
+		MY_CHECK_TOGE_PLAYER_COLL(player.coll) == 3)
 	{
 		if (CheckSoundMem(BGM_PLAY.handle) != 0)
 		{
@@ -1254,42 +1333,42 @@ VOID MY_PLAY_DRAW(VOID)
 		}
 	}
 
-	////当たり判定の描画（デバッグ用）
-	//for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
-	//{
-	//	for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
-	//	{
-	//		//ブロックならば
-	//		if (map[tate][yoko].kind == b || map[tate][yoko].kind == a)
-	//		{
-	//			DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(0, 0, 255), FALSE);
-	//		}
+	//当たり判定の描画（デバッグ用）
+	for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
+	{
+		for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
+		{
+			//ブロックならば
+			if (map[tate][yoko].kind == b || map[tate][yoko].kind == a)
+			{
+				DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(0, 0, 255), FALSE);
+			}
 
-	//		//通路ならば
-	//		if (map[tate][yoko].kind == t)
-	//		{
-	//			DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 255, 0), FALSE);
-	//		}
+			//通路ならば
+			if (map[tate][yoko].kind == t)
+			{
+				DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 255, 0), FALSE);
+			}
 
-	//		//ゴールならば
-	//		if (map[tate][yoko].kind == g)
-	//		{
-	//			DrawBox(goalColl[tate][yoko].left, goalColl[tate][yoko].top, goalColl[tate][yoko].right, goalColl[tate][yoko].bottom, GetColor(0, 255, 0), FALSE);
-	//		}
+			//ゴールならば
+			if (map[tate][yoko].kind == g)
+			{
+				DrawBox(goalColl[tate][yoko].left, goalColl[tate][yoko].top, goalColl[tate][yoko].right, goalColl[tate][yoko].bottom, GetColor(0, 255, 0), FALSE);
+			}
 
-	//		//スターならば
-	//		if (map[tate][yoko].kind == h1 || map[tate][yoko].kind == h2 || map[tate][yoko].kind == h3)
-	//		{
-	//			DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 0, 255), FALSE);
-	//		}
+			//スターならば
+			if (map[tate][yoko].kind == h1 || map[tate][yoko].kind == h2 || map[tate][yoko].kind == h3)
+			{
+				DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 0, 255), FALSE);
+			}
 
-	//		//トゲならば
-	//		if (map[tate][yoko].kind == n || map[tate][yoko].kind == m)
-	//		{
-	//			DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 150, 0), FALSE);
-	//		}
-	//	}
-	//}
+			//トゲならば
+			if (map[tate][yoko].kind == n || map[tate][yoko].kind == m || map[tate][yoko].kind == v)
+			{
+				DrawBox(mapColl[tate][yoko].left, mapColl[tate][yoko].top, mapColl[tate][yoko].right, mapColl[tate][yoko].bottom, GetColor(255, 150, 0), FALSE);
+			}
+		}
+	}
 
 	////プレーヤー当たり判定の描画（デバッグ用）
 	//DrawBox(player.coll.left, player.coll.top, player.coll.right, player.coll.bottom, GetColor(255, 0, 0), FALSE);
@@ -1885,6 +1964,9 @@ int MY_CHECK_TOGE_PLAYER_COLL(RECT player)
 
 				//動くトゲのときは、2を返す
 				if (map[tate][yoko].kind == m) { return 2; }
+
+				//縦に動くトゲのときは3を返す
+				if (map[tate][yoko].kind == v) { return 3; }
 
 			}
 		}
