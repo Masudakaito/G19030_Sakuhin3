@@ -267,10 +267,7 @@ IMAGE ImagePlay;				//プレイ画面の背景画像
 IMAGE ImageTitleROGO;			//ロゴの画像
 IMAGE ImageTitleCLEAR;			//クリアの画像
 IMAGE ImageTitleOVER;			//ゲームオーバーの画像
-IMAGE ImageQuestion1;			//クイズ１の画像
-IMAGE ImageQuestion2;			//クイズ２の画像
-IMAGE ImageQuestion3;			//クイズ３の画像
-IMAGE ImageQuestion4;			//クイズ４の画像
+IMAGE ImageQuestion;			//クイズの画像
 
 IMAGE ImageSpace;				//スペースキーでプレイ画面
 IMAGE ImageSpace2;				//スペースキーでリトライ
@@ -393,15 +390,10 @@ VOID MY_END(VOID);					//エンド画面
 VOID MY_END_PROC(VOID);				//エンド画面の処理
 VOID MY_END_DRAW(VOID);				//エンド画面の描画
 
+VOID MY_LOAD_QUIZ(VOID);			//画像をまとめて読み込む関数
 VOID MY_QUIZ(VOID);					//クイズ画面
-VOID MY_QUIZ1_PROC(VOID);			//クイズ画面1の処理
-VOID MY_QUIZ1_DRAW(VOID);			//クイズ画面1の描画
-VOID MY_QUIZ2_PROC(VOID);			//クイズ画面2の処理
-VOID MY_QUIZ2_DRAW(VOID);			//クイズ画面2の描画
-VOID MY_QUIZ3_PROC(VOID);			//クイズ画面3の処理
-VOID MY_QUIZ3_DRAW(VOID);			//クイズ画面3の描画
-VOID MY_QUIZ4_PROC(VOID);			//クイズ画面4の処理
-VOID MY_QUIZ4_DRAW(VOID);			//クイズ画面4の描画
+VOID MY_QUIZ_PROC(VOID);			//クイズ画面1の処理
+VOID MY_QUIZ_DRAW(VOID);			//クイズ画面1の描画
 
 BOOL MY_LOAD_IMAGE(VOID);			//画像をまとめて読み込む関数
 VOID MY_DELETE_IMAGE(VOID);			//画像をまとめて削除する関数
@@ -703,6 +695,7 @@ VOID MY_START_PROC(VOID)
 		//TRUEならゲーム画面を塗り替える
 		case TRUE:
 			MY_PLAY_INIT();	//ゲーム初期化
+			MY_LOAD_QUIZ();	//クイズを読み込む
 			break;
 
 		//FALSEならトゲの位置を修正
@@ -748,40 +741,61 @@ VOID MY_START_DRAW(VOID)
 //クイズ画面
 VOID MY_QUIZ(VOID)
 {
+	MY_QUIZ_PROC();	//クイズ画面の処理
+	MY_QUIZ_DRAW();	//クイズ画面の描画
 
-	switch (GameStage)
-	{
-	case GAME_STAGE_1:
-			MY_QUIZ1_PROC();	//クイズ画面1の処理
-			MY_QUIZ1_DRAW();	//クイズ画面1の描画
-			break;
-	case GAME_STAGE_2:
-			MY_QUIZ2_PROC();	//クイズ画面2の処理
-			MY_QUIZ2_DRAW();	//クイズ画面2の描画
-			break;
-	case GAME_STAGE_3:
-			MY_QUIZ3_PROC();	//クイズ画面3の処理
-			MY_QUIZ3_DRAW();	//クイズ画面3の描画
-			break;
-	case GAME_STAGE_4:
-			MY_QUIZ4_PROC();	//クイズ画面4の処理
-			MY_QUIZ4_DRAW();	//クイズ画面4の描画
-			break;
-	}
 	return;
 }
 
-//クイズ画面1の処理
-VOID MY_QUIZ1_PROC(VOID)
+VOID MY_LOAD_QUIZ(VOID)	//クイズを読み込む関数
+{
+	switch (GameStage)
+	{
+		case GAME_STAGE_1:
+		//クイズ1
+		strcpy_s(ImageQuestion.path, IMG_QUESTION_1);				//パスの設定
+		break;
+
+		case GAME_STAGE_2:
+		//クイズ2
+		strcpy_s(ImageQuestion.path, IMG_QUESTION_2);				//パスの設定
+		break;
+
+		case GAME_STAGE_3:
+		//クイズ3
+		strcpy_s(ImageQuestion.path, IMG_QUESTION_3);				//パスの設定
+		break;
+
+		case GAME_STAGE_4:
+		//クイズ4
+		strcpy_s(ImageQuestion.path, IMG_QUESTION_4);				//パスの設定
+		break;
+
+	}
+
+	ImageQuestion.handle = LoadGraph(ImageQuestion.path);	//読み込み
+	GetGraphSize(ImageQuestion.handle, &ImageQuestion.width, &ImageQuestion.height);	//画像の幅と高さを取得
+	ImageQuestion.x = GAME_WIDTH / 2;				//左右中央揃え
+	ImageQuestion.y = GAME_HEIGHT / 2;				//上下中央揃え
+	ImageQuestion.angle = DX_PI * 2;				//回転率
+	ImageQuestion.angleMAX = DX_PI * 2;				//回転率MAX
+	ImageQuestion.rate = 0.1;						//拡大率
+	ImageQuestion.rateMAX = IMAGE_QUIZ_ROTA_MAX;	//拡大率MAX
+
+	return;
+}
+
+//クイズ画面の処理
+VOID MY_QUIZ_PROC(VOID)
 {
 
 	//QuizflagがTRUEの場合
 	if (Quizflag == TRUE)
 	{
 		//クイズを拡大
-		if (ImageQuestion1.rate < ImageQuestion1.rateMAX)
+		if (ImageQuestion.rate < ImageQuestion.rateMAX)
 		{
-			ImageQuestion1.rate += IMAGE_QUIZ_ROTA;
+			ImageQuestion.rate += IMAGE_QUIZ_ROTA;
 		}
 	}
 
@@ -796,9 +810,9 @@ VOID MY_QUIZ1_PROC(VOID)
 	if (Quizflag == FALSE)
 	{
 		//クイズを拡小
-		if (ImageQuestion1.rate > 0)
+		if (ImageQuestion.rate > 0)
 		{
-			ImageQuestion1.rate -= IMAGE_QUIZ_ROTA;
+			ImageQuestion.rate -= IMAGE_QUIZ_ROTA;
 		}
 
 		//画像が消えたらプレイ画面へ
@@ -812,195 +826,17 @@ VOID MY_QUIZ1_PROC(VOID)
 	return;
 }
 
-//クイズ画面1の描画
-VOID MY_QUIZ1_DRAW(VOID)
-{
-	MY_PLAY_DRAW();	//プレイ画面を描画
-
-
-	//クイズを拡大しながら描画
-	DrawRotaGraph(
-		ImageQuestion1.x, ImageQuestion1.y,			//画像の座標
-		ImageQuestion1.rate,						//画像の拡大率
-		ImageQuestion1.angle,						//画像の回転率
-		ImageQuestion1.handle, TRUE					//画像のハンドル
-	);
-
-	// 文字列の描画
-	DrawString(900, 50, "エンターキーでスタート！", GetColor(255, 255, 0));
-
-	return;
-}
-
-//クイズ画面2の処理
-VOID MY_QUIZ2_PROC(VOID)
-{
-	//QuizflagがFALSEの場合
-	if (Quizflag == TRUE)
-	{
-		//クイズを拡大
-		if (ImageQuestion2.rate < ImageQuestion2.rateMAX)
-		{
-			ImageQuestion2.rate += IMAGE_QUIZ_ROTA;
-		}
-	}
-
-	//エンターキーを押したら、QuizflagをTRUEにする
-	if (MY_KEY_DOWN(KEY_INPUT_RETURN) == TRUE)
-	{
-		Quizflag = FALSE;
-
-	}
-
-	//QuizflagがTRUEの場合
-	if (Quizflag == FALSE)
-	{
-		//クイズを拡小
-		if (ImageQuestion2.rate > 0)
-		{
-			ImageQuestion2.rate -= IMAGE_QUIZ_ROTA;
-		}
-
-		//画像が消えたらプレイ画面へ
-		else
-		{
-			//ゲームのシーンをプレイ画面にする
-			GameScene = GAME_SCENE_PLAY;
-		}
-	}
-
-	return;
-}
-
-//クイズ画面2の描画
-VOID MY_QUIZ2_DRAW(VOID)
+//クイズ画面の描画
+VOID MY_QUIZ_DRAW(VOID)
 {
 	MY_PLAY_DRAW();	//プレイ画面を描画
 
 	//クイズを拡大しながら描画
 	DrawRotaGraph(
-		ImageQuestion2.x, ImageQuestion2.y,			//画像の座標
-		ImageQuestion2.rate,						//画像の拡大率
-		ImageQuestion2.angle,						//画像の回転率
-		ImageQuestion2.handle, TRUE					//画像のハンドル
-	);
-
-	// 文字列の描画
-	DrawString(900, 50, "エンターキーでスタート！", GetColor(255, 255, 0));
-
-	return;
-}
-
-//クイズ画面3の処理
-VOID MY_QUIZ3_PROC(VOID)
-{
-	//QuizflagがFALSEの場合
-	if (Quizflag == TRUE)
-	{
-		//クイズを拡大
-		if (ImageQuestion3.rate < ImageQuestion3.rateMAX)
-		{
-			ImageQuestion3.rate += IMAGE_QUIZ_ROTA;
-		}
-	}
-
-	//エンターキーを押したら、QuizflagをTRUEにする
-	if (MY_KEY_DOWN(KEY_INPUT_RETURN) == TRUE)
-	{
-		Quizflag = FALSE;
-
-	}
-
-	//QuizflagがTRUEの場合
-	if (Quizflag == FALSE)
-	{
-		//クイズを拡小
-		if (ImageQuestion3.rate > 0)
-		{
-			ImageQuestion3.rate -= IMAGE_QUIZ_ROTA;
-		}
-
-		//画像が消えたらプレイ画面へ
-		else
-		{
-			//ゲームのシーンをプレイ画面にする
-			GameScene = GAME_SCENE_PLAY;
-		}
-	}
-
-	return;
-}
-
-//クイズ画面3の描画
-VOID MY_QUIZ3_DRAW(VOID)
-{
-	MY_PLAY_DRAW();	//プレイ画面を描画
-
-	//クイズを拡大しながら描画
-	DrawRotaGraph(
-		ImageQuestion3.x, ImageQuestion3.y,			//画像の座標
-		ImageQuestion3.rate,						//画像の拡大率
-		ImageQuestion3.angle,						//画像の回転率
-		ImageQuestion3.handle, TRUE					//画像のハンドル
-	);
-
-	// 文字列の描画
-	DrawString(900, 50, "エンターキーでスタート！", GetColor(255, 255, 0));
-
-	return;
-}
-
-//クイズ画面4の処理
-VOID MY_QUIZ4_PROC(VOID)
-{
-	//QuizflagがFALSEの場合
-	if (Quizflag == TRUE)
-	{
-		//クイズを拡大
-		if (ImageQuestion4.rate < ImageQuestion4.rateMAX)
-		{
-			ImageQuestion4.rate += IMAGE_QUIZ_ROTA;
-		}
-	}
-
-	//エンターキーを押したら、QuizflagをTRUEにする
-	if (MY_KEY_DOWN(KEY_INPUT_RETURN) == TRUE)
-	{
-		Quizflag = FALSE;
-
-	}
-
-	//QuizflagがTRUEの場合
-	if (Quizflag == FALSE)
-	{
-		//クイズを拡小
-		if (ImageQuestion4.rate > 0)
-		{
-			ImageQuestion4.rate -= IMAGE_QUIZ_ROTA;
-		}
-
-		//画像が消えたらプレイ画面へ
-		else
-		{
-			//ゲームのシーンをプレイ画面にする
-			GameScene = GAME_SCENE_PLAY;
-		}
-	}
-
-	return;
-}
-
-//クイズ画面4の描画
-VOID MY_QUIZ4_DRAW(VOID)
-{
-	MY_PLAY_DRAW();	//プレイ画面を描画
-
-	//クイズを拡大しながら描画
-	DrawRotaGraph(
-		ImageQuestion4.x, ImageQuestion4.y,			//画像の座標
-		ImageQuestion4.rate,						//画像の拡大率
-		ImageQuestion4.angle,						//画像の回転率
-		ImageQuestion4.handle, TRUE					//画像のハンドル
+		ImageQuestion.x, ImageQuestion.y,			//画像の座標
+		ImageQuestion.rate,						//画像の拡大率
+		ImageQuestion.angle,						//画像の回転率
+		ImageQuestion.handle, TRUE					//画像のハンドル
 	);
 
 	// 文字列の描画
@@ -1615,6 +1451,7 @@ VOID MY_END_PROC(VOID)
 		switch (Clearflag)
 		{
 		case TRUE:
+			MY_LOAD_QUIZ();			//クイズを読み込む
 			MY_PLAY_INIT();			//ゲームクリアなら通常のプレイ画面初期化
 			break;
 
@@ -1781,74 +1618,6 @@ BOOL MY_LOAD_IMAGE(VOID)
 	ImageEnter.x = GAME_WIDTH / 2 - ImageEnter.width / 2;					//左右中央揃え
 	ImageEnter.y = GAME_HEIGHT / 2 + ImageEnter.height + 80;				//上下中央揃え
 
-	//クイズ1
-	strcpy_s(ImageQuestion1.path, IMG_QUESTION_1);				//パスの設定
-	ImageQuestion1.handle = LoadGraph(ImageQuestion1.path);	//読み込み
-	if (ImageQuestion1.handle == -1)
-	{
-		//エラーメッセージ表示
-		MessageBox(GetMainWindowHandle(), IMG_QUESTION_1, IMAGE_LOAD_ERR_TITLE, MB_OK);
-		return FALSE;
-	}
-	GetGraphSize(ImageQuestion1.handle, &ImageQuestion1.width, &ImageQuestion1.height);	//画像の幅と高さを取得
-	ImageQuestion1.x = GAME_WIDTH/2;								//左右中央揃え
-	ImageQuestion1.y = GAME_HEIGHT/2;								//上下中央揃え
-	ImageQuestion1.angle = DX_PI * 2;					//回転率
-	ImageQuestion1.angleMAX = DX_PI * 2;				//回転率MAX
-	ImageQuestion1.rate = 0.1;							//拡大率
-	ImageQuestion1.rateMAX = IMAGE_QUIZ_ROTA_MAX;		//拡大率MAX
-
-	//クイズ2
-	strcpy_s(ImageQuestion2.path, IMG_QUESTION_2);				//パスの設定
-	ImageQuestion2.handle = LoadGraph(ImageQuestion2.path);	//読み込み
-	if (ImageQuestion2.handle == -1)
-	{
-		//エラーメッセージ表示
-		MessageBox(GetMainWindowHandle(), IMG_QUESTION_2, IMAGE_LOAD_ERR_TITLE, MB_OK);
-		return FALSE;
-	}
-	GetGraphSize(ImageQuestion2.handle, &ImageQuestion2.width, &ImageQuestion2.height);	//画像の幅と高さを取得
-	ImageQuestion2.x = GAME_WIDTH / 2;								//左右中央揃え
-	ImageQuestion2.y = GAME_HEIGHT / 2;								//上下中央揃え
-	ImageQuestion2.angle = DX_PI * 2;					//回転率
-	ImageQuestion2.angleMAX = DX_PI * 2;				//回転率MAX
-	ImageQuestion2.rate = 0.1;							//拡大率
-	ImageQuestion2.rateMAX = IMAGE_QUIZ_ROTA_MAX;		//拡大率MAX
-
-	//クイズ3
-	strcpy_s(ImageQuestion3.path, IMG_QUESTION_3);				//パスの設定
-	ImageQuestion3.handle = LoadGraph(ImageQuestion3.path);	//読み込み
-	if (ImageQuestion3.handle == -1)
-	{
-		//エラーメッセージ表示
-		MessageBox(GetMainWindowHandle(), IMG_QUESTION_3, IMAGE_LOAD_ERR_TITLE, MB_OK);
-		return FALSE;
-	}
-	GetGraphSize(ImageQuestion3.handle, &ImageQuestion3.width, &ImageQuestion3.height);	//画像の幅と高さを取得
-	ImageQuestion3.x = GAME_WIDTH / 2;								//左右中央揃え
-	ImageQuestion3.y = GAME_HEIGHT / 2;								//上下中央揃え
-	ImageQuestion3.angle = DX_PI * 2;					//回転率
-	ImageQuestion3.angleMAX = DX_PI * 2;				//回転率MAX
-	ImageQuestion3.rate = 0.1;							//拡大率
-	ImageQuestion3.rateMAX = IMAGE_QUIZ_ROTA_MAX;		//拡大率MAX
-
-	//クイズ4
-	strcpy_s(ImageQuestion4.path, IMG_QUESTION_4);				//パスの設定
-	ImageQuestion4.handle = LoadGraph(ImageQuestion4.path);	//読み込み
-	if (ImageQuestion4.handle == -1)
-	{
-		//エラーメッセージ表示
-		MessageBox(GetMainWindowHandle(), IMG_QUESTION_4, IMAGE_LOAD_ERR_TITLE, MB_OK);
-		return FALSE;
-	}
-	GetGraphSize(ImageQuestion4.handle, &ImageQuestion4.width, &ImageQuestion4.height);	//画像の幅と高さを取得
-	ImageQuestion4.x = GAME_WIDTH / 2;								//左右中央揃え
-	ImageQuestion4.y = GAME_HEIGHT / 2;								//上下中央揃え
-	ImageQuestion4.angle = DX_PI * 2;					//回転率
-	ImageQuestion4.angleMAX = DX_PI * 2;				//回転率MAX
-	ImageQuestion4.rate = 0.1;							//拡大率
-	ImageQuestion4.rateMAX = IMAGE_QUIZ_ROTA_MAX;		//拡大率MAX
-
 	//プレイヤーの画像
 	strcpy_s(player.image.path, IMG_MARU);				//パスの設定
 	player.image.handle = LoadGraph(player.image.path);	//読み込み
@@ -1920,7 +1689,7 @@ VOID MY_DELETE_IMAGE(VOID)
 	DeleteGraph(ImageTitleOVER.handle);
 	DeleteGraph(ImageSpace.handle);
 	DeleteGraph(ImageEnter.handle);
-	DeleteGraph(ImageQuestion1.handle);
+	DeleteGraph(ImageQuestion.handle);
 
 	for (int i_num = 0; i_num < MAP_DIV_NUM; i_num++) { DeleteGraph(mapChip.handle[i_num]); }
 
