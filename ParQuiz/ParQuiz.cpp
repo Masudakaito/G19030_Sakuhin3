@@ -325,17 +325,17 @@ GAME_MAP_KIND mapData2[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
 
 GAME_MAP_KIND mapData3[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
 	//  0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9
-		b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,	// 0
-		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 1
-		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 2
-		b,t,t,t,m,t,t,t,t,t,t,t,t,t,m,t,t,t,t,b,	// 3
-		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 4
-		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 5
-		b,t,t,t,h1,t,t,t,t,h2,t,t,t,t,h3,t,t,t,t,b,	// 6
-		b,t,t,t,t,t,t,t,v,t,t,t,t,t,t,t,t,t,t,b,	// 7
-		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 8
-		b,g,s,t,t,t,t,t,t,m,t,t,t,t,t,t,t,t,g,b,	// 9
-		b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,	// 10
+		n,n,n,n,t,t,t,t,t,t,t,t,t,t,t,t,n,n,n,n,	// 0
+		n,h2,m,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,h3,n,	// 1
+		n,t,t,t,b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,n,	// 2
+		n,t,t,t,t,t,t,b,t,t,m,t,b,t,t,t,t,t,b,n,	// 3
+		n,t,t,t,t,h1,t,t,t,b,t,t,t,m,m,t,m,m,m,m,	// 4
+		n,h3,n,n,n,n,n,t,t,n,t,t,h1,n,t,t,t,t,t,n,	// 5
+		n,t,t,t,t,m,t,t,t,t,t,b,t,n,t,t,t,t,t,n,	// 6
+		n,t,b,t,t,t,b,t,t,t,t,t,t,n,t,t,t,t,t,n,	// 7
+		n,t,t,t,t,t,t,t,m,t,b,m,t,n,t,t,t,t,t,n,	// 8
+		n,s,t,t,t,t,t,n,t,n,t,t,h2,n,t,t,t,t,g,n,	// 9
+		n,b,n,n,n,n,n,n,b,n,n,n,n,n,n,n,n,n,n,n,	// 10
 };	//ステージ３のマップ
 
 GAME_MAP_KIND mapData4[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
@@ -2037,6 +2037,22 @@ VOID PLAYER_MOVE(VOID)
 	if (WKeyflag == TRUE && CheckHitKey(KEY_INPUT_W) == FALSE)
 	{
 		WJumpflag = TRUE;		//二段ジャンプフラグをTRUEにし、二段ジャンプができるようになる
+	}
+
+	//ブロックから落ちてしまったときに二段ジャンプ
+	if (Jumpflag == TRUE && CheckHitKey(KEY_INPUT_W) == TRUE && MY_CHECK_BLOCK_PLAYER_COLL(player.coll) == 0)
+	{
+		//ジャンプSEを流す
+		ChangeVolumeSoundMem(255 * 60 / 100, BGM_JUMP1.handle);	//60%の音量にする
+		PlaySoundMem(BGM_JUMP1.handle, DX_PLAYTYPE_BACK);
+
+		JumpPower = 13;			//約1ブロック分のジャンプ
+		Jumpflag = FALSE;		//ジャンプフラグをFALSEにする
+		WKeyflag = TRUE;		//WキーフラグをTRUEにする
+
+		// 文字列の描画
+		DrawString(0, 0, "W", GetColor(255, 0, 0));
+
 	}
 
 	// 落下処理
