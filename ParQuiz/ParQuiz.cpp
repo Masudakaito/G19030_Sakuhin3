@@ -25,6 +25,9 @@
 #define TOGE_MOVE           2	//トゲが動く距離(1なら左右に1マスずつ。真ん中も合わせて計3マス動く)
 #define TOGE_SPEED          2	//トゲのスピード
 
+//フォントのパスの長さ
+#define FONT_PATH_MAX			255	//255文字まで
+
 //フォント
 #define FONT_TANU_PATH			TEXT(".\\FONT\\TanukiMagic.ttf")	//フォントの場所
 #define FONT_TANU_NAME			TEXT("たぬき油性マジック")			//フォントの名前
@@ -246,6 +249,8 @@ int GameStage;					//ゲームのステージを管理
 
 int GameEndKind;				//ゲームの終了状態
 
+int Dead = 0;
+
 int JumpPower = 0;				//ジャンプスピード初期化
 int Jumpflag = TRUE;			//ジャンプフラグ(TRUEならジャンプできる)
 int WJumpflag = FALSE;			//２段ジャンプフラグ(TRUEなら二段ジャンプできる)
@@ -266,11 +271,7 @@ int Clearflag = TRUE;			//クリアしたかどうかのフラグ(プレイ画面の初期化に使用)
 int Quizflag = TRUE;			//クイズが表示されているかどうかのフラグ
 int Mapflag = TRUE;				//マップを変えるためのフラグ
 
-int Map0Answer = 1;
-int Map1Answer = 2;				//マップ1の答え = 2
-int Map2Answer = 1;				//マップ2の答え = 1
-int Map3Answer = 2;				//マップ3の答え = 2
-int Map4Answer = 3;				//マップ4の答え = 3
+int MapAnswer[] = {1,2,1,2,3};	//ステージごとの答え
 
 IMAGE ImageTitle;				//タイトル画面の背景画像
 IMAGE ImagePlay;				//プレイ画面の背景画像
@@ -285,6 +286,8 @@ IMAGE ImageSpace3;				//スペースキーで次のステージ
 IMAGE ImageEnter;				//エンターキーでタイトル画面
 
 CHARA player;					//ゲームのキャラ
+
+FONT FontTanu32;	//たぬき油性マジック：大きさ32　のフォント構造体
 
 MUSIC BGM_START;				//タイトル画面BGM
 MUSIC BGM_PLAY;					//プレイ画面BGM
@@ -304,9 +307,9 @@ GAME_MAP_KIND mapData0[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
 		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 4
 		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 5
 		b,t,t,t,h1,t,t,t,t,h2,t,t,t,t,h3,t,t,t,t,b,	// 6
-		b,t,n,t,t,t,n,t,t,t,t,t,n,t,t,t,n,t,t,b,	// 7
+		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 7
 		b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,	// 8
-		b,s,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,g,b,	// 9
+		b,s,t,t,t,t,t,t,t,n,t,t,t,t,t,t,t,t,g,b,	// 9
 		b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,	// 10
 };	//ステージ０のマップ
 
@@ -317,7 +320,7 @@ GAME_MAP_KIND mapData1[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
 		n,t,t,g,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,n,	// 2
 		n,t,t,b,n,n,t,t,n,t,t,t,t,n,t,t,t,t,t,n,	// 3
 		n,t,t,t,t,t,t,t,n,t,t,t,t,n,t,t,t,t,t,n,	// 4
-		n,h3,t,t,t,t,t,t,t,b,t,t,t,t,t,t,t,t,t,n,	// 5
+		n,h2,t,t,t,t,t,t,t,b,t,t,t,t,t,t,t,t,t,n,	// 5
 		n,b,t,t,t,t,t,t,t,t,t,n,t,h1,t,t,t,t,t,n,	// 6
 		n,t,t,t,t,b,t,t,t,t,b,t,t,b,t,t,t,t,t,n,	// 7
 		n,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,n,h2,n,	// 8
@@ -677,12 +680,30 @@ VOID MY_FONT_UNINSTALL_ONCE(VOID)
 //戻り値：BOOL ：エラー時はFALSE / 正常時はTRUE
 BOOL MY_FONT_CREATE(VOID)
 {
+
+	//フォントデータを作成
+	strcpy_s(FontTanu32.path, sizeof(FontTanu32.path), FONT_TANU_PATH);	//パスをコピー
+	strcpy_s(FontTanu32.name, sizeof(FontTanu32.name), FONT_TANU_NAME);	//フォント名をコピー
+	FontTanu32.handle = -1;								//ハンドルを初期化
+	FontTanu32.size = 50;								//サイズは32
+	FontTanu32.bold = 1;								//太さ1
+	FontTanu32.type = DX_FONTTYPE_ANTIALIASING_EDGE;	//アンチエイリアシング付きのフォント
+
+	//フォントハンドル作成
+	FontTanu32.handle = CreateFontToHandle(FontTanu32.name, FontTanu32.size, FontTanu32.bold, FontTanu32.type);
+	//フォントハンドル作成できないとき、エラー
+	if (FontTanu32.handle == -1) { MessageBox(GetMainWindowHandle(), FONT_TANU_NAME, FONT_CREATE_ERR_TITLE, MB_OK); return FALSE; }
+
 	return TRUE;
 }
 
 //フォントを削除する関数
 VOID MY_FONT_DELETE(VOID)
 {
+
+	//フォントデータを削除
+	DeleteFontToHandle(FontTanu32.handle);	//フォントのハンドルを削除
+
 	return;
 }
 
@@ -707,6 +728,11 @@ VOID MY_START_PROC(VOID)
 		//BGMの音量を下げる
 		ChangeVolumeSoundMem(255 * 80 / 100, BGM_START.handle);	//80%の音量にする
 		PlaySoundMem(BGM_START.handle, DX_PLAYTYPE_LOOP);
+	}
+
+	if (CheckHitKey(KEY_INPUT_0) == TRUE)
+	{
+		Dead = 0;
 	}
 
 	//スペースキーを押したら、プレイ画面へ移動する
@@ -1264,6 +1290,8 @@ VOID MY_PLAY_PROC(VOID)
 
 		GameEndKind = GAME_END_OVER;	//ゲームオーバー！
 
+		Dead += 1;			//ゲームオーバー数を増やす
+
 		//ゲームのシーンをエンド画面にする
 		GameScene = GAME_SCENE_END;
 
@@ -1277,53 +1305,17 @@ VOID MY_PLAY_PROC(VOID)
 			StopSoundMem(BGM_PLAY.handle);	//BGMを止める
 		}
 
-		//取った解答が正解だったらクリア画面、不正解だったらゲームオーバー画面に遷移
-		switch (GameStage)
+		//正解ならクリア画面へ
+		if(MapAnswer[GameStage]==Answer)
 		{
-		case GAME_STAGE_0:
-			if (Map0Answer == Answer)
-			{
-				GameEndKind = GAME_END_CLEAR;
-			}
-			else
-				GameEndKind = GAME_END_OVER;
-			break;
+			GameEndKind = GAME_END_CLEAR;
+		}
+		//不正解ならゲームオーバー画面へ
+		else
+		{
+			Dead += 1;			//ゲームオーバー数を増やす
 
-		case GAME_STAGE_1:
-			if (Map1Answer == Answer)
-			{
-				GameEndKind = GAME_END_CLEAR;
-			}
-			else
-				GameEndKind = GAME_END_OVER;
-			break;
-
-		case GAME_STAGE_2:
-			if (Map2Answer == Answer)
-			{
-				GameEndKind = GAME_END_CLEAR;
-			}
-			else
-				GameEndKind = GAME_END_OVER;
-			break;
-
-		case GAME_STAGE_3:
-			if (Map3Answer == Answer)
-			{
-				GameEndKind = GAME_END_CLEAR;
-			}
-			else
-				GameEndKind = GAME_END_OVER;
-			break;
-
-		case GAME_STAGE_4:
-			if (Map4Answer == Answer)
-			{
-				GameEndKind = GAME_END_CLEAR;
-			}
-			else
-				GameEndKind = GAME_END_OVER;
-			break;
+			GameEndKind = GAME_END_OVER;
 		}
 
 		//ゲームのシーンをエンド画面にする
@@ -1414,6 +1406,10 @@ VOID MY_PLAY_DRAW(VOID)
 	// 文字列の描画
 	DrawString(1000, 0, "Pキーでクイズ確認、ポーズ", GetColor(255, 0, 0));
 
+	//ゲームオーバーになった数を表示
+	int Color = GetColor(255, 0,0);
+	DrawFormatStringToHandle(550,0,Color,FontTanu32.handle, "%d", Dead);
+
 	//Aキーを押すとAを表示
 	if (CheckHitKey(KEY_INPUT_A) == TRUE)
 	{
@@ -1472,45 +1468,10 @@ VOID MY_END_PROC(VOID)
 		//MapflagがTRUEのとき
 		if (Mapflag == TRUE)
 		{
-			//ステージを次に進める
-			switch (GameStage)
-			{
-			case GAME_STAGE_0:
 
-				GameStage = GAME_STAGE_1;
-				Mapflag = FALSE;
+			GameStage += 1;			//ステージを次に進める
+			Mapflag = FALSE;		//MapflagをFALSEにする
 
-				break;
-
-			case GAME_STAGE_1:
-
-				GameStage = GAME_STAGE_2;
-				Mapflag = FALSE;
-
-				break;
-
-			case GAME_STAGE_2:
-
-				GameStage = GAME_STAGE_3;
-				Mapflag = FALSE;
-
-				break;
-
-			case GAME_STAGE_3:
-
-				GameStage = GAME_STAGE_4;
-				Mapflag = FALSE;
-
-				break;
-
-			case GAME_STAGE_4:
-
-				GameStage = GAME_STAGE_1;
-				Mapflag = FALSE;
-
-				break;
-
-			}
 		}
 
 		//BGMが流れていないなら
