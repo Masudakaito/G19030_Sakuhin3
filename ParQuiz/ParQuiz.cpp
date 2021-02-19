@@ -189,7 +189,6 @@ typedef struct STRUCT_IMAGE
 
 }IMAGE;	//画像構造体
 
-
 typedef struct STRUCT_MUSIC
 {
 	char path[PATH_MAX];		//パス
@@ -249,7 +248,7 @@ int GameStage;					//ゲームのステージを管理
 
 int GameEndKind;				//ゲームの終了状態
 
-int Dead = 0;
+int Dead = 0;					//ゲームオーバーになった数
 
 int JumpPower = 0;				//ジャンプスピード初期化
 int Jumpflag = TRUE;			//ジャンプフラグ(TRUEならジャンプできる)
@@ -320,7 +319,7 @@ GAME_MAP_KIND mapData1[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX]{
 		n,t,t,g,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,n,	// 2
 		n,t,t,b,n,n,t,t,n,t,t,t,t,n,t,t,t,t,t,n,	// 3
 		n,t,t,t,t,t,t,t,n,t,t,t,t,n,t,t,t,t,t,n,	// 4
-		n,h2,t,t,t,t,t,t,t,b,t,t,t,t,t,t,t,t,t,n,	// 5
+		n,h3,t,t,t,t,t,t,t,b,t,t,t,t,t,t,t,t,t,n,	// 5
 		n,b,t,t,t,t,t,t,t,t,t,n,t,h1,t,t,t,t,t,n,	// 6
 		n,t,t,t,t,b,t,t,t,t,b,t,t,b,t,t,t,t,t,n,	// 7
 		n,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,n,h2,n,	// 8
@@ -730,6 +729,7 @@ VOID MY_START_PROC(VOID)
 		PlaySoundMem(BGM_START.handle, DX_PLAYTYPE_LOOP);
 	}
 
+	//0キーで死亡数をリセット
 	if (CheckHitKey(KEY_INPUT_0) == TRUE)
 	{
 		Dead = 0;
@@ -888,10 +888,10 @@ VOID MY_QUIZ_DRAW(VOID)
 
 	//クイズを拡大しながら描画
 	DrawRotaGraph(
-		ImageQuestion.x, ImageQuestion.y,			//画像の座標
+		ImageQuestion.x, ImageQuestion.y,		//画像の座標
 		ImageQuestion.rate,						//画像の拡大率
-		ImageQuestion.angle,						//画像の回転率
-		ImageQuestion.handle, TRUE					//画像のハンドル
+		ImageQuestion.angle,					//画像の回転率
+		ImageQuestion.handle, TRUE				//画像のハンドル
 	);
 
 	// 文字列の描画
@@ -1045,7 +1045,6 @@ VOID MY_PLAY_INIT_OVER(VOID)
 			{
 				map[tate][yoko].kind = h2;
 			}
-
 			if (map[tate][yoko].kind == m3)
 			{
 				map[tate][yoko].kind = h3;
@@ -1305,7 +1304,7 @@ VOID MY_PLAY_PROC(VOID)
 			StopSoundMem(BGM_PLAY.handle);	//BGMを止める
 		}
 
-		//正解ならクリア画面へ
+		//クイズが正解ならクリア画面へ
 		if(MapAnswer[GameStage]==Answer)
 		{
 			GameEndKind = GAME_END_CLEAR;
